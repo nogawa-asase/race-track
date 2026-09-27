@@ -144,7 +144,12 @@ function renderGoalLine(course: Course): SVGGElement {
   const to = toDisplay(course.goalLine.to);
   const length = Math.hypot(to.x - from.x, to.y - from.y);
   const squares = Math.max(2, Math.round(length / 0.3));
-  const width = course.definition.halfWidth * 0.6;
+  // コースの太さ(halfWidth)に比例させると、太いコースほど市松模様が
+  // ゴールラインの手前まで大きく広がり、まだゴールに達していない車が
+  // すでにゴールの中にいるように見えてしまう(実際の判定はゴールラインの
+  // 通過・到達だけで、模様の面積とは無関係)。スタートラインと同じような
+  // 「太線」に見える程度の、コースの太さに依存しない固定幅にする
+  const width = 0.3;
   const nx = -(to.y - from.y) / length; // 線に直交する向き(半幅ぶんの厚み用)
   const ny = (to.x - from.x) / length;
 
