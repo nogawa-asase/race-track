@@ -387,8 +387,8 @@
 | KPI | Key Performance Indicator | 成功指標。自動テストとプレイテストで測る |
 | CPU | Central Processing Unit | このプロジェクトでは、コンピューターが操作する対戦相手を指す |
 | E2E | End to End | 画面を実際に操作して一連の流れを確かめるテスト |
-| CI | Continuous Integration | push・PRごとの自動チェック(GitHub Actions) |
-| PR | Pull Request | 作業ブランチを `main` にマージするための依頼 |
+| CI | Continuous Integration | push ごとの自動チェック(GitHub Actions) |
+| PR | Pull Request | 作業ブランチを `main` にマージするための依頼。このプロジェクトでは使わず、手元でマージして push する |
 | DOM | Document Object Model | ブラウザの画面の要素を扱う仕組み |
 | fps | frames per second | アニメーションの1秒あたりのコマ数(目標60) |
 

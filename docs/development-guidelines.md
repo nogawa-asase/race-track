@@ -299,7 +299,9 @@ main(いつでもビルド・公開できる状態)
 
 - ブランチ名は英語の kebab-case
 - 1つのステアリング(`.steering/[日付]-[作業名]/`)に、1つの作業ブランチを対応させる
-- `main` へは、プルリクエスト(PR)で squash merge する。`main` に直接コミットしない(初回セットアップのコミットを除く)
+- 少人数の開発のため、プルリクエスト(PR)は使わない。作業が終わったら、下の「main へのマージ前のチェック」を通し、手元で作業ブランチを `main` にマージ(fast-forward)して push する
+- fast-forward できない(作業中に `main` が進んだ)場合は、作業ブランチを `main` に rebase してから、チェックをやり直してマージする
+- `main` で直接作業しない(初回セットアップのコミットを除く)。マージした作業ブランチは削除する
 
 ### コミットメッセージ
 
@@ -338,35 +340,15 @@ PRDのルール変更(スピンの廃止)に合わせて、手番の開始時に
 - willBeDeadEnd.ts で移動直後の予告を判定
 ```
 
-### プルリクエスト
+### main へのマージ前のチェック
 
-**作成前のチェック**:
 - [ ] `npm run lint` が通る
 - [ ] `npm run typecheck` が通る
 - [ ] `npm test` が通る
 - [ ] ルール・CPU・コースを変えた場合、`npm run test:sim` が通る
 - [ ] 画面を変えた場合、`npm run test:e2e` が通り、PCとスマホ幅で見た目を確認した
-
-**PRテンプレート**:
-```markdown
-## 概要
-[変更内容を1〜2文で]
-
-## 関連するドキュメント
-- ステアリング: .steering/[日付]-[作業名]/
-- PRD・設計書の該当箇所: [ファイルと見出し]
-
-## 変更内容
-- [変更点]
-
-## テスト
-- [ ] ユニットテストを追加・更新した
-- [ ] シミュレーションを実行した(該当する場合)
-- [ ] E2Eテストを実行した(該当する場合)
-
-## スクリーンショット(画面を変えた場合)
-[PCとスマホ幅の画像]
-```
+- [ ] `tasklist.md` の全タスクが完了し、振り返りを書いた
+- [ ] 下の「コードレビュー」の観点で、差分を見直した(Claude Code の `/code-review` を使ってもよい)
 
 ## コードレビュー
 
@@ -425,14 +407,14 @@ t の範囲を 0 < t <= 1 にしてください。
 
 ### CI(GitHub Actions)
 
-リポジトリ(GitHub)への push と PR で、次を実行する。設定(`.github/workflows/ci.yml`)は実装の最初の作業で、`eslint.config.js` の層のルールと一緒に追加する。
+リポジトリ(GitHub)への push で、次を実行する(PR を作った場合は PR でも実行する)。設定(`.github/workflows/ci.yml`)は実装の最初の作業で、`eslint.config.js` の層のルールと一緒に追加する。
 
 | ジョブ | 内容 | タイミング |
 |--------|------|-----------|
-| check | `npm run lint`・`npm run typecheck`・`npm test` | すべての push・PR |
-| build | `npm run build`(表の生成を含む)と `npm run check:size`(配信サイズが `architecture.md` の上限を超えたら失敗) | すべての push・PR |
-| e2e | `npm run test:e2e` | PR |
-| sim | `npm run test:sim` | `src/domain/`・`src/courses/` を変えた PR |
+| check | `npm run lint`・`npm run typecheck`・`npm test` | すべての push |
+| build | `npm run build`(表の生成を含む)と `npm run check:size`(配信サイズが `architecture.md` の上限を超えたら失敗) | すべての push |
+| e2e | `npm run test:e2e` | `main` への push |
+| sim | `npm run test:sim` | `src/domain/`・`src/courses/` を変えた `main` への push |
 
 ## リリース(itch.io への公開)
 
@@ -476,5 +458,6 @@ npm run dev
 
 1. 作業ごとに `.steering/[YYYYMMDD]-[作業名]/` を作り、`requirements.md`・`design.md`・`tasklist.md` を書く
 2. 作業ブランチを切り、`tasklist.md` に沿って実装する。進んだら `tasklist.md` を更新する
-3. テストを書き、上の「プルリクエスト」のチェックを通す
-4. ルールや設計が変わった場合は、`docs/` の該当ドキュメントも同じPRで更新する
+3. テストを書き、上の「main へのマージ前のチェック」を通す
+4. ルールや設計が変わった場合は、`docs/` の該当ドキュメントも同じ作業ブランチで更新する
+5. `main` にマージして push し、GitHub Actions の CI が通ることを確かめる
