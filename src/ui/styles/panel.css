@@ -34,9 +34,10 @@
 .start-position-pad button {
   min-width: 44px;
   min-height: 44px;
+  aspect-ratio: 1;
   font-size: 1rem;
   border: 1px solid #999;
-  border-radius: 4px;
+  border-radius: 0;
   background: #fff;
   cursor: pointer;
 }

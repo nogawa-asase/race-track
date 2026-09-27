@@ -4,7 +4,7 @@
  */
 :root {
   --color-red: #c0392b; /* 赤鉛筆(先攻) */
-  --color-blue: #2c3e50; /* 青鉛筆(後攻) */
+  --color-blue: #1d5fd6; /* 青鉛筆(後攻)。黒に近い濃紺だと「色が付いていない」ように見えるため、はっきり青とわかる色にする */
   --color-grass: #9acd32; /* 芝 */
   --color-grid: #ffffff; /* 方眼 */
   --color-road: #7f8c8d; /* 道 */
