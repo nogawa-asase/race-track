@@ -194,6 +194,11 @@ test.describe('ゲームの流れ(機能設計書「画面遷移」)', () => {
 
     // Then: レース画面(スタート位置選び)に進む
     await expect(page.locator('.race-screen')).toBeVisible();
+    // 盤に START・GOAL の文字が表示されている
+    await expect(page.locator('.board-line-label')).toHaveText([
+      'START',
+      'GOAL',
+    ]);
 
     // When: 決着まで進める
     await playUntilFinished(page);

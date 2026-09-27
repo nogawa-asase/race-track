@@ -26,6 +26,18 @@
   opacity: 0.55;
 }
 
+.board-line-label {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 0.04;
+  paint-order: stroke;
+  font-weight: bold;
+  font-family: sans-serif;
+  letter-spacing: 0.02px;
+  pointer-events: none;
+  user-select: none;
+}
+
 .board-start-line {
   stroke-linecap: butt;
 }
