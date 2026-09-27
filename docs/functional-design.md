@@ -162,7 +162,7 @@ interface GameState {
   players: PlayerState[];  // 手番順(0番が先攻)。最初の版は2人
   phase: GamePhase;
   turn: number;            // 手番のプレイヤーの番号(players の添字)
-  round: number;           // 現在の周回(1から)
+  round: number;           // 現在の周回(レース中は1から。スタート位置選びの間は0)
   result: GameResult | null; // phase が 'finished' のときだけ入る
 }
 
