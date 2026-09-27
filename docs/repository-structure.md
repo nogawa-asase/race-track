@@ -101,11 +101,12 @@ domain/
 │   ├── segmentInside.ts       # 線分の内外判定(距離による省略と二分割)
 │   └── goalCrossing.ts        # ゴールラインの到達・通過の判定
 ├── rules/
+│   ├── classify.ts            # 加速9通りの並び、1つの行き先の分類(listCandidates・applyAction・willBeDeadEnd で共通)
 │   ├── createGame.ts          # 設定から初期状態を作る
 │   ├── listStartPoints.ts     # 置けるスタート位置
 │   ├── listCandidates.ts      # 9候補の分類
 │   ├── applyAction.ts         # 行動の検証と適用(手番・周回・ゴール)
-│   ├── judge.ts               # 決着の判定(ゴール・同着ルール・行き止まり)
+│   ├── judge.ts               # 決着の判定(周回の終わりのゴール・同着ルール、手番の開始時の行き止まり settleDeadEnd)
 │   └── willBeDeadEnd.ts       # 次の手番で行き止まりになるかの予告
 ├── table/
 │   ├── types.ts               # DistanceTable インターフェース

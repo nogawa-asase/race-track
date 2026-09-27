@@ -298,6 +298,7 @@ function listStartPoints(state: GameState, course: Course): Vec[];   // 置け�
 function listCandidates(state: GameState, course: Course): Candidate[]; // 手番のプレイヤーの9候補
 function applyAction(state: GameState, course: Course, action: Action): GameState;
 function willBeDeadEnd(state: GameState, course: Course, player: number): boolean; // 次の手番で9候補がすべてコースの外か(相手の車は考えない)
+function settleDeadEnd(state: GameState, course: Course): GameState; // 手番のプレイヤーが行き止まりなら、負けとして決着した状態を返す。そうでなければ state をそのまま返す
 ```
 
 **依存関係**: Course
@@ -449,6 +450,8 @@ interface GameView {
   「選べる」「ゴールできる」が1つもない → 行き止まり
     → 9候補とそれぞれの理由を盤に表示してから、そのプレイヤーの負け
        (2人の場合、相手の勝ち。reason は、相手がゴール済みなら 'goal'、そうでなければ 'deadEnd')
+    → 画面が候補を表示した後に settleDeadEnd を呼び、決着した状態を受け取る
+       (applyAction の中では決着させない。負けを確定する前に、9候補を見せるため)
 
 move(加速 a) の適用:
   1. 行き先 t = p + v + a、新しい速度 v' = v + a
@@ -631,6 +634,8 @@ sequenceDiagram
     Ctrl->>Rules: listCandidates(state)
     Rules-->>Ctrl: 9候補(すべて選べない)
     Ctrl->>View: renderBoard(state, 候補) 9候補の理由を表示
+    Ctrl->>Rules: settleDeadEnd(state)
+    Rules-->>Ctrl: 決着した状態(相手の勝ち)
     Ctrl->>View: showMessage("赤鉛筆は、どこにも進めません。青鉛筆の勝ちです")
     Ctrl->>View: showResult(結果)
 ```
