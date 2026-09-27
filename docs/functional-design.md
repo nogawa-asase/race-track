@@ -333,7 +333,7 @@ function buildDistanceTable(course: Course): DistanceTable;
 interface Random { next(): number } // 0以上1未満。テストでは固定の値を返すものに差し替える
 
 function chooseStartPoint(points: Vec[], table: DistanceTable, level: CpuLevel, random: Random): Vec;
-function chooseMove(state: GameState, candidates: Candidate[], table: DistanceTable, level: CpuLevel, random: Random): Vec; // 加速を返す
+function chooseMove(candidates: Candidate[], velocity: Vec, table: DistanceTable, level: CpuLevel, random: Random): Vec; // 加速を返す。state 全体ではなく、新しい速度の計算に必要な velocity だけを受け取る
 ```
 
 **依存関係**: DistanceTable

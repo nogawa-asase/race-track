@@ -155,6 +155,7 @@ courses/
 - `loadTable.ts`: 表のファイルを相対パスで読み込み、`DecompressionStream('gzip')` で展開し、サイズを検証して `DistanceTable` にする
 - `history.ts`: P1の「1手戻す」の履歴
 - `messages.ts`: 画面に出す文言(機能設計書の「メッセージ」)をまとめたもの
+- 本番用の `Random`(`Math.random` をそのまま使う実装)は `GameController.ts` に置く。`domain/cpu/random.ts` は `Random` インターフェースと、テスト・シミュレーション用の疑似乱数だけを持ち、`Math.random` を呼ばない(ESLint がドメイン層での使用を禁止しているため)
 
 **命名規則**:
 - クラスとインターフェースのファイルは PascalCase(例: `GameController.ts`)
