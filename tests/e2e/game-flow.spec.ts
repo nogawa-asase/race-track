@@ -303,8 +303,9 @@ test.describe('「設定に戻る」(機能設計書の状態遷移図)', () => 
     await page.click('.panel-buttons button:has-text("設定に戻る")');
     await page.click('.confirm-dialog button:has-text("はい")');
 
-    // Then: 設定画面に戻る
+    // Then: 設定画面に戻る(レース画面は隠れている)
     await expect(page.locator('.settings-screen')).toBeVisible();
+    await expect(page.locator('.race-screen')).toBeHidden();
   });
 });
 

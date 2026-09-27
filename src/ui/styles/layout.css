@@ -3,7 +3,13 @@
  * 条件は architecture.md「画面レイアウトの切り替え」のとおり
  */
 
-.race-screen {
+/*
+ * ":not([hidden])" が必要: 素の ".race-screen { display: flex }" だと、
+ * ブラウザ標準の "[hidden] { display: none }" と詳細度が同じになり、
+ * 後から読み込まれるこちらが勝ってしまう。そのため `raceScreen.hidden = true`
+ * にしても実際には非表示にならず、設定画面と一緒に表示され続けるバグがあった
+ */
+.race-screen:not([hidden]) {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -17,7 +23,9 @@
 }
 
 @media (min-width: 768px) and (orientation: landscape) {
-  .race-screen {
+  /* ":not([hidden])" は、上の基本ルールと詳細度を揃えるため(揃えないと、
+     詳細度で基本ルールが勝ってしまい、横並びに切り替わらなくなる) */
+  .race-screen:not([hidden]) {
     flex-direction: row;
     align-items: flex-start;
   }
