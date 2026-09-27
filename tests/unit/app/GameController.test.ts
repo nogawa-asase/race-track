@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { afterEach, vi } from 'vitest';
 import { GameController } from '../../../src/app/GameController';
 import { DEAD_END_WARNING } from '../../../src/app/messages';
@@ -11,6 +10,7 @@ import { listStartPoints } from '../../../src/domain/rules/listStartPoints';
 import { buildDistanceTable } from '../../../src/domain/table/buildDistanceTable';
 import type { GameSettings } from '../../../src/domain/types';
 import { FakeGameView } from './FakeGameView';
+import { buildHairpinTableGz } from '../fixtures/tables';
 
 function gzipResponse(bytes: Uint8Array): Response {
   return {
@@ -22,7 +22,7 @@ function gzipResponse(bytes: Uint8Array): Response {
 /** すべての表を、事前に生成したファイルから返す fetch のモックにする */
 function stubTableFetch(): void {
   const files: Record<string, Buffer> = {
-    hairpin: readFileSync('public/tables/hairpin.bin.gz'),
+    hairpin: buildHairpinTableGz(),
   };
   vi.stubGlobal(
     'fetch',
@@ -350,10 +350,9 @@ describe('GameController', () => {
 
     it('retry: 表を読み込み直さずに、コースの準備からやり直す', async () => {
       // Given
-      const fetchMock = vi.fn(async (_url: string) => {
-        const bytes = readFileSync('public/tables/hairpin.bin.gz');
-        return gzipResponse(new Uint8Array(bytes));
-      });
+      const fetchMock = vi.fn(async (_url: string) =>
+        gzipResponse(new Uint8Array(buildHairpinTableGz()))
+      );
       vi.stubGlobal('fetch', fetchMock);
       const view = new FakeGameView();
       const controller = new GameController(view, fixedRandom(0.99), 0);

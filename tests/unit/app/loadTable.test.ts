@@ -1,8 +1,8 @@
-import { readFileSync } from 'node:fs';
 import { afterEach, vi } from 'vitest';
 import { buildCourse } from '../../../src/domain/course/buildCourse';
 import { loadTable } from '../../../src/app/loadTable';
 import { hairpin } from '../../../src/courses/hairpin';
+import { buildHairpinTableGz } from '../fixtures/tables';
 
 function gzipResponse(bytes: Uint8Array, ok = true): Response {
   return {
@@ -13,17 +13,17 @@ function gzipResponse(bytes: Uint8Array, ok = true): Response {
 
 describe('loadTable', () => {
   const course = buildCourse(hairpin);
+  const tableGz = buildHairpinTableGz();
 
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it('生成済みの表(npm run gen:tables)を、展開して DistanceTable にする', async () => {
-    // Given: 実際に生成された表のファイルを、fetch の代わりに返す
-    const gz = readFileSync('public/tables/hairpin.bin.gz');
+  it('生成した表を、展開して DistanceTable にする', async () => {
+    // Given: 実際に buildDistanceTable で作った表を、fetch の代わりに返す
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => gzipResponse(new Uint8Array(gz)))
+      vi.fn(async () => gzipResponse(new Uint8Array(tableGz)))
     );
 
     // When
@@ -37,8 +37,7 @@ describe('loadTable', () => {
 
   it('相対パスでコースIDのファイルを取得する', async () => {
     // Given
-    const gz = readFileSync('public/tables/hairpin.bin.gz');
-    const fetchMock = vi.fn(async () => gzipResponse(new Uint8Array(gz)));
+    const fetchMock = vi.fn(async () => gzipResponse(new Uint8Array(tableGz)));
     vi.stubGlobal('fetch', fetchMock);
 
     // When
