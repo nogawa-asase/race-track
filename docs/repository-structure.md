@@ -191,6 +191,7 @@ ui/
 ├── DomGameView.ts
 ├── board/
 │   ├── BoardView.ts           # SVG全体の管理と、変わらない層・変わる層の分離
+│   ├── constants.ts           # 盤の余白、座標の表示用変換、パスのSVG化、アニメーション等の時間
 │   ├── staticLayer.ts         # 芝・方眼・コース・スタートライン・ゴールライン
 │   ├── trailLayer.ts          # 軌跡と車
 │   ├── candidateLayer.ts      # 慣性点・9候補・プレビュー

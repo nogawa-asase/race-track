@@ -1,0 +1,79 @@
+/** 盤(BoardView)のレイアウトと候補の見た目 */
+
+.board {
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 100%;
+  touch-action: none; /* タップの2段階確定を、ブラウザのジェスチャーに邪魔されないようにする */
+}
+
+.board-candidate {
+  cursor: pointer;
+}
+
+.board-candidate.is-disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.board-grid-line {
+  stroke: var(--color-grid);
+  stroke-width: 0.03;
+  opacity: 0.85;
+}
+
+.board-grid-on-road .board-grid-line {
+  opacity: 0.55;
+}
+
+.board-start-line {
+  stroke-linecap: butt;
+}
+
+/* 軌跡・車 */
+.trail-point {
+  opacity: 0.9;
+}
+
+/* 慣性点 */
+.inertia-point {
+  stroke: #2c2c2c;
+  stroke-width: 0.05;
+}
+
+/* プレビューの線分 */
+.preview-line {
+  stroke: #2c2c2c;
+  stroke-width: 0.07;
+  stroke-dasharray: 0.16 0.12;
+  fill: none;
+}
+
+/* 候補の記号(機能設計書「候補の表示」) */
+.candidate-color-red.candidate-ok {
+  color: var(--color-red);
+}
+.candidate-color-blue.candidate-ok {
+  color: var(--color-blue);
+}
+.mark-ok {
+  fill: currentColor;
+}
+.mark-goal {
+  fill: var(--color-goal-gold);
+  stroke: #8a6d00;
+  stroke-width: 0.02;
+}
+.mark-offcourse,
+.mark-occupied {
+  fill: none;
+}
+.mark-offcourse line,
+.mark-occupied line,
+.mark-occupied circle {
+  stroke: var(--color-disabled);
+  stroke-width: 0.06;
+}
+.is-previewed {
+  filter: drop-shadow(0 0 0.06px #000) drop-shadow(0 0 0.06px #000);
+}

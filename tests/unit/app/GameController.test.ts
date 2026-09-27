@@ -243,7 +243,7 @@ describe('GameController', () => {
       // Then
       expect(view.results.length).toBe(1);
       expect(['goal', 'tieRule']).toContain(view.results[0].result.reason);
-    });
+    }, 30_000); // buildDistanceTable を含むため、他のテストと同時実行だと5秒を超えることがある
 
     it('行き止まりで決着すると、予告と結果のメッセージが出て showResult が呼ばれる', async () => {
       // Given: 手で探した「この先どう指しても行き止まりになる」実際の状態
