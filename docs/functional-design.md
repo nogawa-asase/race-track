@@ -351,8 +351,8 @@ function chooseMove(candidates: Candidate[], velocity: Vec, table: DistanceTable
 **インターフェース**:
 ```typescript
 class GameController {
-  constructor(view: GameView);
-  startGame(settings: GameSettings): void;   // コースの準備(表の読み込み)→ くじ → スタート位置選び
+  constructor(view: GameView, random?: Random, thinkingMs?: number); // random(既定はMath.randomを使う本番実装)とthinkingMs(既定はPRDの表示時間)は、テストで差し替えられるように引数にする
+  startGame(settings: GameSettings): Promise<void>; // コースの準備(表の読み込み)→ くじ → スタート位置選び。CPUの手番が続く限り、内部で自動的に進める
   onPointSelected(point: Vec): void;         // 盤の点がクリック・タップで確定された
   onPadSelected(accel: Vec): void;           // 方向パッドで確定された
   backToSettings(): void;                    // 確認のうえ設定画面に戻る
