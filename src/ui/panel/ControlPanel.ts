@@ -19,6 +19,7 @@ export class ControlPanel {
   private readonly container: HTMLElement;
   private readonly turnEl: HTMLElement;
   private readonly roundEl: HTMLElement;
+  private readonly thinkingEl: HTMLElement;
   private readonly padContainer: HTMLElement;
   private readonly directionPad: DirectionPad;
   private readonly startPositionPad: StartPositionPad;
@@ -31,6 +32,10 @@ export class ControlPanel {
     this.turnEl.className = 'turn-indicator';
     this.roundEl = document.createElement('p');
     this.roundEl.className = 'round-indicator';
+    this.thinkingEl = document.createElement('p');
+    this.thinkingEl.className = 'thinking-indicator';
+    this.thinkingEl.textContent = '考え中…';
+    this.thinkingEl.hidden = true;
 
     this.padContainer = document.createElement('div');
     this.directionPad = new DirectionPad(
@@ -57,6 +62,7 @@ export class ControlPanel {
     this.container.append(
       this.turnEl,
       this.roundEl,
+      this.thinkingEl,
       this.padContainer,
       buttons
     );
@@ -75,7 +81,7 @@ export class ControlPanel {
     candidatesOrPoints: readonly Candidate[] | readonly Vec[]
   ): void {
     const player = state.players[state.turn];
-    this.turnEl.textContent = turnMessage(opponent, player.color);
+    this.turnEl.textContent = turnMessage(opponent, player.kind, player.color);
     this.turnEl.className = `turn-indicator color-${player.color}`;
     this.roundEl.textContent = `周回: ${state.round}`;
 
@@ -102,6 +108,11 @@ export class ControlPanel {
     return this.padContainer.querySelector(
       '.start-position-pad'
     ) as HTMLElement;
+  }
+
+  /** CPUの「考え中」の表示を切り替える */
+  setThinking(visible: boolean): void {
+    this.thinkingEl.hidden = !visible;
   }
 
   destroy(): void {

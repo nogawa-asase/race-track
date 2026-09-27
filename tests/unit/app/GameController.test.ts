@@ -13,9 +13,12 @@ import { FakeGameView } from './FakeGameView';
 import { buildHairpinTableGz } from '../fixtures/tables';
 
 function gzipResponse(bytes: Uint8Array): Response {
+  const blob = new Blob([bytes as unknown as ArrayBuffer]);
   return {
     ok: true,
-    body: new Blob([bytes as unknown as ArrayBuffer]).stream(),
+    body: blob.stream(),
+    headers: new Headers(),
+    arrayBuffer: () => blob.arrayBuffer(),
   } as Response;
 }
 
@@ -74,7 +77,7 @@ describe('GameController', () => {
       // Then
       expect(view.lotteryShown).toEqual(['human']);
       expect(view.rendered.at(-1)?.state.phase).toBe('placing');
-    });
+    }, 30_000); // buildDistanceTable を含むため、他のテストと同時実行だと5秒を超えることがある
 
     it('CPU戦・先攻指定: くじを表示せず、スタート位置選びに進む', async () => {
       // Given
@@ -348,6 +351,20 @@ describe('GameController', () => {
       expect(view.rendered.length).toBe(before);
     });
 
+    it('backToSettingsFromResult: 確認なしで設定画面に戻る(結果画面からの想定)', async () => {
+      // Given
+      stubTableFetch();
+      const view = new FakeGameView();
+      const controller = new GameController(view, fixedRandom(0.99), 0);
+      await controller.startGame(baseSettings);
+
+      // When: confirm を積んでいない状態でも戻れる
+      controller.backToSettingsFromResult();
+
+      // Then
+      expect(view.settingsShown).toEqual([baseSettings]);
+    });
+
     it('retry: 表を読み込み直さずに、コースの準備からやり直す', async () => {
       // Given
       const fetchMock = vi.fn(async (_url: string) =>
@@ -387,5 +404,31 @@ describe('GameController', () => {
       );
       expect(view.settingsShown).toEqual([baseSettings]);
     });
+  });
+});
+
+describe('pauseForRules・resumeFromRules', () => {
+  it('ルール説明を開いている間は、CPUの手番が進まない', async () => {
+    // Given: 先にルール説明を開いてから、CPUが先攻のゲームを始める
+    // (startGame は、置き終わるかブロックされるまで解決しないため、await しない)
+    stubTableFetch();
+    const view = new FakeGameView();
+    const controller = new GameController(view, fixedRandom(0.99), 0);
+    controller.pauseForRules();
+    void controller.startGame({ ...baseSettings, turnOrder: 'second' }); // CPUが先攻
+    await settle();
+
+    // Then: CPUの「考え中」がまだ始まっていない(スタート位置がまだ空)
+    const before = view.rendered.at(-1)!.state;
+    expect(before.players[0].position).toBeNull();
+    expect(view.thinkingCalls).toEqual([]);
+
+    // When: 閉じると、CPUが置く
+    controller.resumeFromRules();
+    await settle();
+
+    // Then
+    const after = view.rendered.at(-1)!.state;
+    expect(after.players[0].position).not.toBeNull();
   });
 });

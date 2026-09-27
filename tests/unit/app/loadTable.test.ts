@@ -5,9 +5,23 @@ import { hairpin } from '../../../src/courses/hairpin';
 import { buildHairpinTableGz } from '../fixtures/tables';
 
 function gzipResponse(bytes: Uint8Array, ok = true): Response {
+  const blob = new Blob([bytes as unknown as ArrayBuffer]);
   return {
     ok,
-    body: new Blob([bytes as unknown as ArrayBuffer]).stream(),
+    body: blob.stream(),
+    headers: new Headers(),
+    arrayBuffer: () => blob.arrayBuffer(),
+  } as Response;
+}
+
+/** 配信サーバーが Content-Encoding: gzip を付け、ブラウザ側で自動展開済みの応答 */
+function decodedResponse(bytes: Uint8Array): Response {
+  const blob = new Blob([bytes as unknown as ArrayBuffer]);
+  return {
+    ok: true,
+    body: blob.stream(),
+    headers: new Headers({ 'content-encoding': 'gzip' }),
+    arrayBuffer: () => blob.arrayBuffer(),
   } as Response;
 }
 
@@ -56,6 +70,24 @@ describe('loadTable', () => {
 
     // Then
     await expect(loadTable(course)).rejects.toThrow(Error);
+  });
+
+  it('Content-Encoding: gzip の応答(配信サーバーが自動展開済み)も読み込める', async () => {
+    // Given: vite preview のように、サーバー側が .gz を自動展開して返す場合
+    const { gunzipSync } = await import('node:zlib');
+    const rawBytes = gunzipSync(tableGz);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => decodedResponse(new Uint8Array(rawBytes)))
+    );
+
+    // When
+    const table = await loadTable(course);
+
+    // Then
+    for (const point of course.startPoints) {
+      expect(table.get(point, { x: 0, y: 0 })).not.toBeNull();
+    }
   });
 
   it('サイズが一致しない表は Error', async () => {

@@ -1,0 +1,49 @@
+/** 設定画面・結果画面の見た目 */
+
+.settings-screen,
+.result-screen {
+  padding: 1rem;
+  max-width: 480px;
+}
+
+.settings-screen .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.settings-screen select,
+.settings-screen input {
+  min-height: 44px;
+  font-size: 1rem;
+}
+
+.settings-screen .buttons,
+.result-screen .buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.settings-screen button,
+.result-screen button {
+  min-height: 44px;
+  padding: 0 1rem;
+}
+
+.result-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  margin: 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.result-screen .winner {
+  font-size: 1.25rem;
+  font-weight: bold;
+}

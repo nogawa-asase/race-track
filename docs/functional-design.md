@@ -355,8 +355,11 @@ class GameController {
   startGame(settings: GameSettings): Promise<void>; // コースの準備(表の読み込み)→ くじ → スタート位置選び。CPUの手番が続く限り、内部で自動的に進める
   onPointSelected(point: Vec): void;         // 盤の点がクリック・タップで確定された
   onPadSelected(accel: Vec): void;           // 方向パッドで確定された
-  backToSettings(): void;                    // 確認のうえ設定画面に戻る
+  backToSettings(): void;                    // 確認のうえ設定画面に戻る(スタート位置選び・レース画面から)
+  backToSettingsFromResult(): void;          // 確認なしで設定画面に戻る(結果画面から)
   retry(): void;                             // 同じ設定でもう一度
+  pauseForRules(): void;                     // ルール説明を開いている間、CPUの手番の進行を止める
+  resumeFromRules(): void;                   // ルール説明を閉じたら、止めていたCPUの手番を再開する
   undo(): void;                              // P1
 }
 ```

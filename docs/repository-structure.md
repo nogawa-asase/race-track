@@ -211,7 +211,9 @@ ui/
     ├── theme.css              # 色のCSS変数(P1のダークモードもここ)
     ├── layout.css             # PC(横並び)とスマホ(縦並び)の切り替え
     ├── board.css
-    └── panel.css
+    ├── panel.css
+    ├── screens.css            # 設定画面・結果画面
+    └── dialogs.css            # 確認・メッセージ・ルール説明ダイアログ
 ```
 
 ### scripts/ (スクリプトディレクトリ)

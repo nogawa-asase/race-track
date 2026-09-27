@@ -8,15 +8,19 @@ import {
 
 describe('messages', () => {
   it('人の手番(CPU戦)', () => {
-    expect(turnMessage('cpu', 'red')).toBe('あなた(赤鉛筆)の番です');
+    expect(turnMessage('cpu', 'human', 'red')).toBe('あなた(赤鉛筆)の番です');
   });
 
   it('人同士の手番', () => {
-    expect(turnMessage('human', 'blue')).toBe('青鉛筆の番です');
+    expect(turnMessage('human', 'human', 'blue')).toBe('青鉛筆の番です');
   });
 
   it('CPUの手番', () => {
     expect(thinkingMessage('blue')).toBe('CPU(青鉛筆)が考え中…');
+  });
+
+  it('CPUの手番(手番の表示から呼んでも同じ文言)', () => {
+    expect(turnMessage('cpu', 'cpu', 'blue')).toBe('CPU(青鉛筆)が考え中…');
   });
 
   it('くじの結果(CPU戦、あなたが先攻)', () => {

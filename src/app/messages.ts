@@ -7,10 +7,14 @@ function colorName(color: PenColor): string {
 /** 手番のプレイヤーの表示(機能設計書「メッセージ」) */
 export function turnMessage(
   opponent: 'cpu' | 'human',
+  playerKind: 'human' | 'cpu',
   color: PenColor
 ): string {
   if (opponent === 'human') {
     return `${colorName(color)}鉛筆の番です`;
+  }
+  if (playerKind === 'cpu') {
+    return thinkingMessage(color);
   }
   return `あなた(${colorName(color)}鉛筆)の番です`;
 }
