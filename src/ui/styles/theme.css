@@ -8,7 +8,7 @@
   --color-grass: #9acd32; /* 芝 */
   --color-grid: #ffffff; /* 方眼 */
   --color-road: #7f8c8d; /* 道 */
-  --color-start-line: #c0392b; /* スタートライン */
+  --color-start-line: #ffffff; /* スタートライン(赤鉛筆の車の色と同じにならないよう、中立な色にする) */
   --color-goal-gold: #f1c40f; /* ゴールできる候補・ゴールラインの市松模様 */
   --color-disabled: #95a5a6; /* 選べない候補 */
   --color-dangerous: #e67e22; /* 危ない候補(P1) */
