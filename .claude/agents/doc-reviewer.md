@@ -1,7 +1,7 @@
 ---
 name: doc-reviewer
 description: ドキュメントの品質をレビューし、改善提案を行うサブエージェント
-model: sonnet
+model: Opus
 ---
 
 # ドキュメントレビューエージェント
