@@ -1,39 +1,47 @@
 {
   "name": "claude-code-container",
   "version": "0.1.0",
-  "description": "Claude Code book - Chapter 8 template",
+  "description": "レーストラック(ブラウザ版): 方眼紙のカーレースを、ブラウザでCPUと対戦",
   "type": "module",
   "scripts": {
     "prepare": "husky",
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "check:size": "tsx scripts/check-dist-size.ts",
     "lint": "eslint .",
-    "format": "npx prettier --write .",
+    "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:sim": "vitest run --config vitest.sim.config.ts",
+    "test:e2e": "npm run build && playwright test"
   },
   "keywords": [
-    "spec-driven-development",
-    "claude-code",
-    "template"
+    "racetrack",
+    "game",
+    "browser"
   ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.11.0",
-    "@vitest/coverage-v8": "^2.0.0",
-    "@vitest/ui": "^2.0.0",
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^5.0.2",
+    "@vitest/ui": "^5.0.2",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^9.1.0",
     "husky": "^9.0.0",
     "lint-staged": "^15.2.0",
     "prettier": "^3.2.0",
-    "typescript": "~5.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
     "typescript-eslint": "^8.0.0",
-    "vitest": "^2.0.0"
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

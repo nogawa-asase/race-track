@@ -35,6 +35,11 @@ Thumbs.db
 # Testing
 coverage/
 .nyc_output/
+test-results/
+playwright-report/
+
+# Generated distance tables (npm run gen:tables)
+public/tables/
 
 # Steering files (task management - temporary)
 .steering/*

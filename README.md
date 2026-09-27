@@ -1,32 +1,61 @@
-# claude-code-container
+# レーストラック(ブラウザ版)
 
-本リポジトリは技術評論社より発行されている[「実践Claude Code入門 - 現場で活用するためのAIコーディングの思考法」](https://www.amazon.co.jp/dp/4297153548)のサンプルコードを管理するGitHubリポジトリです。
+『マーチン・ガードナーの数学ゲームⅡ 新装版』(別冊日経サイエンス182)の第17話「シムとチョンプとレーストラック」で紹介された、紙と鉛筆のゲーム「レーストラック」を、ブラウザで遊べるようにするプロジェクトです。
 
-リポジトリ内のコード・プロンプトに関する詳細な解説は、書籍をご覧ください。
+方眼紙の上の車を、「前の手と同じだけ進んだ点」のまわり9点から選んで動かし、先にゴールした方が勝ち。サイコロを使わず、慣性だけで勝負が決まります。CPUとの1対1、または1台の端末で人同士の対戦ができます(開発中)。
 
-書籍の内容に関するご質問、不備のご指摘については以下のリポジトリのイシューよりお願いいたします。
+## ドキュメント
 
-https://github.com/GenerativeAgents/claude-code-book
+| ドキュメント | 内容 |
+|------------|------|
+| [プロダクト要求定義書](docs/product-requirements.md) | 何を作るか(ゲームのルールの正式な定義を含む) |
+| [機能設計書](docs/functional-design.md) | どう動くか |
+| [技術仕様書](docs/architecture.md) | 何で作るか |
+| [リポジトリ構造定義書](docs/repository-structure.md) | どこに置くか |
+| [開発ガイドライン](docs/development-guidelines.md) | どう書くか・どう進めるか |
+| [用語集](docs/glossary.md) | 言葉の意味 |
 
-## 注意事項
+## 開発環境
 
-本リポジトリの内容は読者からのフィードバックを受けて、より性能の良いプロンプトに変更されることがあります。差分は随時書籍に反映されますが、お手元の版との差分があることをご承知おきください。
-
-## 使い方
-
-### 1. リポジトリのクローン
+Dev Container で開発します(事前に Docker と VS Code の Dev Containers 拡張が必要です)。
 
 ```bash
-git clone [このリポジトリ] claude-code-container
-cd claude-code-container
+# 1. リポジトリを取得して、VS Code の「Reopen in Container」で開く
+git clone https://github.com/nogawa-asase/race-track.git
+cd race-track
+
+# 2. 依存を入れる(Dev Container の作成時に自動で実行されます)
+npm install
+
+# 3. E2Eテスト用のブラウザを入れる(初回だけ)
+npx playwright install --with-deps chromium webkit
+
+# 4. 開発サーバーを起動する
+npm run dev
 ```
 
-### 2. Dev Container経由で開く
+## コマンド
 
-Visual Studio Codeで「Reopen in Container」を選択すると、自動的に次のように環境構築が行われます。
+| コマンド | 内容 |
+|---------|------|
+| `npm run dev` | 開発サーバーを起動する |
+| `npm run build` | 型チェックのうえ、`dist/` に配信用のファイルを出力する |
+| `npm run preview` | ビルドした `dist/` を配信して確認する |
+| `npm run check:size` | `dist/` の合計サイズが上限(500KB)以内かを確かめる |
+| `npm run lint` | ESLint(層の依存ルールを含む) |
+| `npm run typecheck` | 型チェック |
+| `npm run format` | Prettier で整形する |
+| `npm test` | ユニットテスト・コースの自動チェック |
+| `npm run test:coverage` | ユニットテストとカバレッジ(ドメイン層) |
+| `npm run test:sim` | CPU同士の対戦シミュレーション |
+| `npm run test:e2e` | ビルドして、Chromium と WebKit で E2E テストを実行する |
 
-- Node.js LTS環境の構築
-- npm installの実行
-- Claude Codeの最新版インストール
+## 公開
 
-※ Dev Containerを利用する際は、事前にDockerのインストールが必要です。
+itch.io で公開する予定です。手順は [技術仕様書の「デプロイ(itch.io)」](docs/architecture.md) と [開発ガイドラインの「リリース」](docs/development-guidelines.md) を参照してください。
+
+## ライセンス
+
+[MIT](LICENSE)
+
+このリポジトリは、技術評論社「実践Claude Code入門 - 現場で活用するためのAIコーディングの思考法」のサンプルリポジトリ(https://github.com/GenerativeAgents/claude-code-book)をテンプレートとして作成しました。

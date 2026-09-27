@@ -12,3 +12,9 @@ node_modules/
 
 # ビルド成果物
 dist/
+
+# 生成物・テストの出力
+coverage/
+public/tables/
+test-results/
+playwright-report/
