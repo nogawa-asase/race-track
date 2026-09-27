@@ -67,9 +67,9 @@ race-track/
 **役割**: ドメイン層。ルール、コースの判定、最短手数の表、CPUの手の選択。画面にもブラウザにも依存しない純粋な計算で、ブラウザ・Node.js(テスト、表の生成)の両方で動く。
 
 **配置ファイル**:
-- `types.ts`: ドメイン全体で使う型(`Vec`・`GameState`・`PlayerState`・`Action`・`Candidate`・`GameResult`・`GameSettings` など。機能設計書のデータモデル)
+- `types.ts`: ドメイン全体で使う型(`Point`・`Vec`・`Segment`・`GameState`・`PlayerState`・`Action`・`Candidate`・`GameResult`・`GameSettings` など。機能設計書のデータモデル)
 - `vec.ts`: 座標の計算(足し算・引き算・比較など)
-- `errors.ts`: ドメインのエラー(`RuleViolationError` など)
+- `errors.ts`: ドメインのエラー(`CourseDefinitionError`・`RuleViolationError` など)
 - `course/`: コースの組み立てと判定
 - `rules/`: ルールの判定と行動の適用
 - `table/`: 最短手数の表
@@ -91,8 +91,12 @@ domain/
 ├── errors.ts
 ├── course/
 │   ├── types.ts               # CourseDefinition・Course・PathElement・GoalCrossing
+│   ├── constants.ts           # EPSILON・MIN_SEGMENT_LENGTH
+│   ├── validateCourseDefinition.ts # 定義の制約の検証
 │   ├── buildCourse.ts         # 定義からパス・スタートライン・ゴールライン・スタート位置を組み立てる
 │   ├── buildPath.ts           # 折れ線の角にフィレット(円弧)を入れてパスを作る
+│   ├── pathSampling.ts        # パスの長さ、パスをたどった位置の点
+│   ├── shape.ts               # 内外判定に使う形(パスと端の切り落とし)
 │   ├── distance.ts            # 点からパスまでの距離、端の切り落とし
 │   ├── segmentInside.ts       # 線分の内外判定(距離による省略と二分割)
 │   └── goalCrossing.ts        # ゴールラインの到達・通過の判定

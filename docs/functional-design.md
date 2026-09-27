@@ -64,16 +64,19 @@ graph TB
 ### 基本の型
 
 ```typescript
-/** 格子点、または移動量・速度・加速(整数) */
-interface Vec {
+/** 盤上の座標(実数)。コースの判定やゴールラインに使う */
+interface Point {
   x: number; // 右が正
   y: number; // 下が正
 }
 
-/** 盤上の線分(コースの判定やゴールラインに使う。座標は実数) */
+/** 格子点、または移動量・速度・加速。Point と同じ形で、整数だけを入れる */
+type Vec = Point;
+
+/** 盤上の線分 */
 interface Segment {
-  from: { x: number; y: number };
-  to: { x: number; y: number };
+  from: Point;
+  to: Point;
 }
 ```
 
@@ -117,17 +120,19 @@ interface Course {
   goalLine: Segment;
   startPoints: Vec[];      // スタートライン上の格子点(両端を含む)
 
-  isInside(p: { x: number; y: number }): boolean;  // 点がコースの内側か(縁の上は内側)
-  isSegmentInside(a: Vec, b: Vec): boolean;         // 線分全体がコースの内側か
-  goalCrossing(a: Vec, b: Vec): GoalCrossing | null; // 線分がゴールラインに到達・通過するか
+  isInside(p: Point): boolean;                          // 点がコースの内側か(縁の上は内側)
+  isSegmentInside(a: Point, b: Point): boolean;         // 線分全体がコースの内側か
+  goalCrossing(a: Point, b: Point): GoalCrossing | null; // 線分がゴールラインに到達・通過するか
 }
 
+// 直線の端点は、角を丸めた後は実数になる。円弧の sweep は符号付きの角度(ラジアン)で、
+// y が下向きなので正は画面上で時計回り
 type PathElement =
-  | { kind: 'line'; from: Vec; to: Vec }
-  | { kind: 'arc'; center: { x: number; y: number }; radius: number; startAngle: number; endAngle: number };
+  | { kind: 'line'; from: Point; to: Point }
+  | { kind: 'arc'; center: Point; radius: number; startAngle: number; sweep: number };
 
 interface GoalCrossing {
-  point: { x: number; y: number }; // ゴールラインと交わる点
+  point: Point;                     // ゴールラインと交わる点
   t: number;                        // 線分上の位置(0〜1。1ならゴールライン上にぴったり止まる)
 }
 ```

@@ -482,8 +482,9 @@ stateDiagram-v2
 
 | 型 | 定義 | 主なフィールド | 定義場所 |
 |----|------|---------------|---------|
-| `Vec` | 格子点、または移動量・速度・加速 | `x`(右が正)、`y`(下が正) | `src/domain/types.ts` |
-| `Segment` | 盤上の線分(座標は実数) | `from`、`to` | `src/domain/types.ts` |
+| `Vec` | 格子点、または移動量・速度・加速(`Point` と同じ形で、整数だけを入れる) | `x`(右が正)、`y`(下が正) | `src/domain/types.ts` |
+| `Point` | 盤上の座標(実数) | `x`(右が正)、`y`(下が正) | `src/domain/types.ts` |
+| `Segment` | 盤上の線分 | `from`、`to`(`Point`) | `src/domain/types.ts` |
 | `CourseDefinition` | コースの定義データ | `centerline`、`filletRadius`、`halfWidth`、`boardSize` | `src/domain/course/types.ts` |
 | `Course` | 判定用に組み立てたコース | `path`、`startLine`、`goalLine`、`startPoints` | `src/domain/course/types.ts` |
 | `GameSettings` | 設定画面で選んだ内容 | `opponent`、`courseId`、`cpuLevel`、`turnOrder`、`alert` | `src/domain/types.ts` |
@@ -509,6 +510,19 @@ stateDiagram-v2
 **例**:
 ```typescript
 throw new RuleViolationError('その候補はコースの外です', action);
+```
+
+### コース定義のエラー
+
+**クラス名**: `CourseDefinitionError`
+
+**発生条件**: コース定義が、機能設計書の `CourseDefinition` の制約を満たさないとき(`buildCourse` の最初に検証する)。
+
+**対処方法**: コース定義を直す。本番の3コースは自動テストで検証するので、公開前に見つかる。
+
+**例**:
+```typescript
+throw new CourseDefinitionError('crank', '最初の辺が軸に平行ではありません');
 ```
 
 ### 表の読み込みエラー
