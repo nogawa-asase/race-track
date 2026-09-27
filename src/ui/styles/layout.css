@@ -1,0 +1,33 @@
+/**
+ * PC(横並び)とスマホ(縦並び)のレイアウト切り替え。
+ * 条件は architecture.md「画面レイアウトの切り替え」のとおり
+ */
+
+.race-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.race-screen .board {
+  max-width: 100%;
+}
+
+@media (min-width: 768px) and (orientation: landscape) {
+  .race-screen {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .race-screen .board {
+    flex: 0 0 auto;
+    width: min(70vh, 60%);
+  }
+
+  .race-screen .control-panel {
+    flex: 1 1 260px;
+  }
+}

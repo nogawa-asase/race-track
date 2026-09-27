@@ -197,8 +197,9 @@ ui/
 │   ├── candidateLayer.ts      # 慣性点・9候補・プレビュー
 │   └── boardInput.ts          # クリック・タップの2段階の確定
 ├── panel/
-│   ├── ControlPanel.ts        # 手番・周回・メッセージ・ボタン
-│   └── DirectionPad.ts        # 3×3の方向パッド
+│   ├── ControlPanel.ts        # 手番・周回・ボタン、DirectionPad/StartPositionPadの切り替え
+│   ├── DirectionPad.ts        # レース中、3×3の方向パッド
+│   └── StartPositionPad.ts    # スタート位置選び中、←/決定/→のパッド
 ├── screens/
 │   ├── SettingsScreen.ts
 │   └── ResultScreen.ts

@@ -7,7 +7,7 @@ test.describe('盤(BoardView)', () => {
 
     // Then
     await expect(page.locator('.board')).toBeVisible();
-    await expect(page.locator('[data-accel-x]')).toHaveCount(9);
+    await expect(page.locator('.board [data-accel-x]')).toHaveCount(9);
   });
 
   test('選べる候補・ゴールできる候補・はみ出す候補・相手がいる候補が、それぞれ正しく分類される', async ({
@@ -18,16 +18,18 @@ test.describe('盤(BoardView)', () => {
     await page.goto('./');
 
     // Then: 9つとも選べる(ok)候補になっている
-    await expect(page.locator('.candidate-ok')).toHaveCount(9);
-    await expect(page.locator('.candidate-goal')).toHaveCount(0);
-    await expect(page.locator('.candidate-offcourse')).toHaveCount(0);
-    await expect(page.locator('.candidate-occupied')).toHaveCount(0);
+    await expect(page.locator('.board .candidate-ok')).toHaveCount(9);
+    await expect(page.locator('.board .candidate-goal')).toHaveCount(0);
+    await expect(page.locator('.board .candidate-offcourse')).toHaveCount(0);
+    await expect(page.locator('.board .candidate-occupied')).toHaveCount(0);
   });
 
   test('マウスのクリックは1回で確定する', async ({ page }) => {
     // Given
     await page.goto('./');
-    const candidate = page.locator('[data-accel-x="1"][data-accel-y="0"]');
+    const candidate = page.locator(
+      '.board [data-accel-x="1"][data-accel-y="0"]'
+    );
 
     // When
     await candidate.click();
@@ -41,7 +43,9 @@ test.describe('盤(BoardView)', () => {
   }) => {
     // Given
     await page.goto('./');
-    const candidate = page.locator('[data-accel-x="0"][data-accel-y="1"]');
+    const candidate = page.locator(
+      '.board [data-accel-x="0"][data-accel-y="1"]'
+    );
     const target = await candidate.evaluate((el) => ({
       x: Number((el as HTMLElement).dataset.accelX),
       y: Number((el as HTMLElement).dataset.accelY),
@@ -53,7 +57,7 @@ test.describe('盤(BoardView)', () => {
 
     // Then: まだ確定していないが、プレビューは表示されている
     await expect(page.locator('#status')).toHaveText('');
-    await expect(page.locator('.is-previewed')).toHaveCount(1);
+    await expect(page.locator('.board .is-previewed')).toHaveCount(1);
 
     // When: 同じ候補への2回目のタップ
     await candidate.dispatchEvent('pointerup', { pointerType: 'touch' });
@@ -67,8 +71,8 @@ test.describe('盤(BoardView)', () => {
   }) => {
     // Given
     await page.goto('./');
-    const first = page.locator('[data-accel-x="0"][data-accel-y="1"]');
-    const second = page.locator('[data-accel-x="1"][data-accel-y="1"]');
+    const first = page.locator('.board [data-accel-x="0"][data-accel-y="1"]');
+    const second = page.locator('.board [data-accel-x="1"][data-accel-y="1"]');
 
     // When
     await first.dispatchEvent('pointerup', { pointerType: 'touch' });
@@ -101,7 +105,7 @@ test('選べない候補(相手がいる)をクリックしても、何も起こ
 }) => {
   // Given: 相手が (8,5) にいて、先攻の中央の候補と重なる
   await page.goto('./?scenario=occupied');
-  const occupied = page.locator('[data-accel-x="0"][data-accel-y="0"]');
+  const occupied = page.locator('.board [data-accel-x="0"][data-accel-y="0"]');
   await expect(occupied).toHaveClass(/candidate-occupied/);
   await expect(occupied).toHaveClass(/is-disabled/);
 

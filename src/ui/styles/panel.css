@@ -1,0 +1,75 @@
+/** 操作パネル(ControlPanel・DirectionPad・StartPositionPad)の見た目 */
+
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+}
+
+.turn-indicator {
+  font-weight: bold;
+}
+
+.turn-indicator.color-red {
+  color: var(--color-red);
+}
+.turn-indicator.color-blue {
+  color: var(--color-blue);
+}
+
+.round-indicator {
+  color: #555;
+}
+
+.direction-pad,
+.start-position-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+  max-width: 220px;
+}
+
+.direction-pad button,
+.start-position-pad button {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 1rem;
+  border: 1px solid #999;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.direction-pad button:disabled {
+  cursor: default;
+  color: var(--color-disabled);
+  background: #eee;
+}
+
+.direction-pad button.candidate-ok.color-red {
+  color: var(--color-red);
+  border-color: var(--color-red);
+}
+.direction-pad button.candidate-ok.color-blue {
+  color: var(--color-blue);
+  border-color: var(--color-blue);
+}
+.direction-pad button.candidate-goal {
+  color: #8a6d00;
+  background: var(--color-goal-gold);
+}
+.direction-pad button.is-previewed,
+.start-position-pad button.is-previewed {
+  outline: 3px solid #333;
+}
+
+.panel-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.panel-buttons button {
+  min-height: 44px;
+  padding: 0 0.75rem;
+}
