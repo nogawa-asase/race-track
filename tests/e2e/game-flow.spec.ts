@@ -338,3 +338,53 @@ test.describe('結果画面(機能設計書「結果画面」)', () => {
     await expect(page.locator('.race-screen')).toBeVisible();
   });
 });
+
+test.describe('スタート位置選び(機能設計書「入力の操作」の盤への直接クリック・タップ)', () => {
+  test('盤に置ける点が表示され、マウスのクリックで確定できる', async ({
+    page,
+  }) => {
+    // Given
+    await startGame(page, 'human');
+    await dismissMessageIfAny(page);
+    await expect(page.locator('.race-screen')).toBeVisible();
+
+    // Then: 置ける点が、選べる候補と同じ見た目(●)で盤に表示される
+    const points = page.locator('.board [data-point-x]');
+    await expect(points.first()).toBeVisible();
+    expect(await points.count()).toBeGreaterThan(0);
+
+    // When: マウスで1回クリック
+    const before = await page.locator('.turn-indicator').textContent();
+    await points.first().click();
+
+    // Then: プレビューを介さず、即座に確定して手番が変わる
+    await expect(page.locator('.turn-indicator')).not.toHaveText(before ?? '');
+  });
+
+  test('タッチは1回目でプレビュー、同じ点への2回目で確定する', async ({
+    page,
+  }) => {
+    // Given
+    await startGame(page, 'human');
+    await dismissMessageIfAny(page);
+    await expect(page.locator('.race-screen')).toBeVisible();
+    const point = page.locator('.board [data-point-x]').first();
+
+    // When: 1回目のタップ(touch)
+    await point.dispatchEvent('pointerup', { pointerType: 'touch' });
+
+    // Then: まだ確定していないが、プレビューは表示されている
+    await expect(page.locator('.board .is-previewed')).toHaveCount(1);
+    const turnDuringPreview = await page
+      .locator('.turn-indicator')
+      .textContent();
+
+    // When: 同じ点への2回目のタップ
+    await point.dispatchEvent('pointerup', { pointerType: 'touch' });
+
+    // Then: 確定して手番が変わる
+    await expect(page.locator('.turn-indicator')).not.toHaveText(
+      turnDuringPreview ?? ''
+    );
+  });
+});

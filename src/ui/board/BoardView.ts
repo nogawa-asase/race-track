@@ -1,7 +1,7 @@
 import type { Course } from '../../domain/course/types';
 import type { Candidate, GameState, Vec } from '../../domain/types';
 import { attachBoardInput } from './boardInput';
-import { renderCandidateLayer } from './candidateLayer';
+import { renderCandidateLayer, renderStartPointLayer } from './candidateLayer';
 import { BOARD_MARGIN, MOVE_ANIMATION_MS, toDisplay } from './constants';
 import { renderStaticLayer } from './staticLayer';
 import { renderTrailLayer } from './trailLayer';
@@ -26,8 +26,9 @@ export class BoardView {
   private readonly candidateLayer: SVGGElement;
   private detachInput: (() => void) | null = null;
   private latestCandidates: readonly Candidate[] = [];
+  private latestStartPoints: readonly Vec[] = [];
   private latestState: GameState | null = null;
-  private preview: Candidate | null = null;
+  private preview: Vec | null = null;
 
   constructor(container: HTMLElement, onSelect: (target: Vec) => void) {
     this.svg = document.createElementNS(SVG_NS, 'svg');
@@ -38,18 +39,18 @@ export class BoardView {
     this.svg.append(this.staticLayer, this.trailLayer, this.candidateLayer);
     container.append(this.svg);
 
-    this.detachInput = attachBoardInput(this.svg, () => this.latestCandidates, {
-      onSelect,
-      onPreviewChange: (target) => {
-        this.preview =
-          target === null
-            ? null
-            : (this.latestCandidates.find(
-                (c) => c.target.x === target.x && c.target.y === target.y
-              ) ?? null);
-        this.redrawCandidates();
-      },
-    });
+    this.detachInput = attachBoardInput(
+      this.svg,
+      () => this.latestCandidates,
+      () => this.latestStartPoints,
+      {
+        onSelect,
+        onPreviewChange: (target) => {
+          this.preview = target;
+          this.redrawCandidates();
+        },
+      }
+    );
   }
 
   /** コースを選んだときに1回呼ぶ。静止した層を描き、盤の大きさに合わせる */
@@ -63,24 +64,45 @@ export class BoardView {
   }
 
   /**
-   * 手番のたびに呼ぶ。軌跡・車・候補を描き直す。
-   * candidates が null なら候補の層は空にする(スタート位置選び中)
+   * 手番のたびに呼ぶ。軌跡・車・候補(またはスタート位置選び中の置ける点)を
+   * 描き直す。`state.phase` が `'racing'` なら `candidatesOrPoints` を9候補
+   * として、それ以外(スタート位置選び中)なら置ける点として扱う
+   * (機能設計書「入力の操作」の「スタート位置(マウス・タッチ)」に対応する)
    */
-  render(state: GameState, candidates: readonly Candidate[] | null): void {
+  render(
+    state: GameState,
+    candidatesOrPoints: readonly Candidate[] | readonly Vec[]
+  ): void {
     this.latestState = state;
-    this.latestCandidates = candidates ?? [];
     this.preview = null;
+    if (state.phase === 'racing') {
+      this.latestCandidates = candidatesOrPoints as readonly Candidate[];
+      this.latestStartPoints = [];
+    } else {
+      this.latestCandidates = [];
+      this.latestStartPoints = candidatesOrPoints as readonly Vec[];
+    }
     renderTrailLayer(this.trailLayer, state);
     this.redrawCandidates();
   }
 
   private redrawCandidates(): void {
     if (!this.latestState) return;
-    renderCandidateLayer(
+    if (this.latestState.phase === 'racing') {
+      renderCandidateLayer(
+        this.candidateLayer,
+        this.latestState,
+        this.latestCandidates.length > 0 ? this.latestCandidates : null,
+        this.preview
+      );
+      return;
+    }
+    const player = this.latestState.players[this.latestState.turn];
+    renderStartPointLayer(
       this.candidateLayer,
-      this.latestState,
-      this.latestCandidates.length > 0 ? this.latestCandidates : null,
-      this.preview
+      this.latestStartPoints,
+      this.preview,
+      player.color
     );
   }
 

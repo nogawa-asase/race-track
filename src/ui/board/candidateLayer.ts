@@ -1,4 +1,4 @@
-import type { Candidate, GameState, Vec } from '../../domain/types';
+import type { Candidate, GameState, PenColor, Vec } from '../../domain/types';
 import { add, equals } from '../../domain/vec';
 import { toDisplay } from './constants';
 
@@ -91,13 +91,13 @@ function renderOccupied(
  * 慣性点・9候補・プレビューを描く。手番の切り替えのたびに呼ぶ。
  * candidates が null(スタート位置選び中)なら、候補の層は空にする
  *
- * @param preview - プレビュー中の候補(なければ null)
+ * @param preview - プレビュー中の候補の行き先(なければ null)
  */
 export function renderCandidateLayer(
   parent: SVGGElement,
   state: GameState,
   candidates: readonly Candidate[] | null,
-  preview: Candidate | null
+  preview: Vec | null
 ): void {
   if (!candidates) {
     parent.replaceChildren();
@@ -129,7 +129,7 @@ export function renderCandidateLayer(
   // プレビュー中の線分(慣性点や現在位置ではなく、実際の移動元から)
   if (preview) {
     const from = toDisplay(player.position!);
-    const to = toDisplay(preview.target);
+    const to = toDisplay(preview);
     children.push(
       el('line', {
         x1: from.x,
@@ -142,9 +142,7 @@ export function renderCandidateLayer(
   }
 
   for (const candidate of candidates) {
-    const isPreviewed = preview
-      ? equals(preview.accel, candidate.accel)
-      : false;
+    const isPreviewed = preview ? equals(preview, candidate.target) : false;
     const mark = renderMark(candidate, isPreviewed);
     mark.classList.add(
       'board-candidate',
@@ -157,10 +155,48 @@ export function renderCandidateLayer(
     if (isPreviewed) {
       mark.classList.add('is-previewed');
     }
-    mark.dataset.accelX = String(candidate.accel.x);
-    mark.dataset.accelY = String(candidate.accel.y);
+    mark.dataset.pointX = String(candidate.target.x);
+    mark.dataset.pointY = String(candidate.target.y);
     children.push(mark);
   }
 
+  parent.replaceChildren(...children);
+}
+
+/**
+ * スタート位置選び中、置ける点に「選べる」候補と同じ見た目(●・手番の車の色)
+ * で丸を描く(機能設計書「入力の操作」の「スタート位置」の行に対応する、
+ * 盤への直接クリック・タップのための土台)
+ *
+ * @param preview - プレビュー中の点(なければ null)
+ */
+export function renderStartPointLayer(
+  parent: SVGGElement,
+  points: readonly Vec[],
+  preview: Vec | null,
+  playerColor: PenColor
+): void {
+  const children: SVGElement[] = [];
+  for (const point of points) {
+    const isPreviewed = preview ? equals(preview, point) : false;
+    const p = toDisplay(point);
+    const mark = el('circle', {
+      cx: p.x,
+      cy: p.y,
+      r: isPreviewed ? 0.32 : 0.24,
+      class: 'mark-ok',
+    });
+    mark.classList.add(
+      'board-candidate',
+      'candidate-ok',
+      `candidate-color-${playerColor}`
+    );
+    if (isPreviewed) {
+      mark.classList.add('is-previewed');
+    }
+    mark.dataset.pointX = String(point.x);
+    mark.dataset.pointY = String(point.y);
+    children.push(mark);
+  }
   parent.replaceChildren(...children);
 }

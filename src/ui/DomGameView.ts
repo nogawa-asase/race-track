@@ -100,8 +100,8 @@ export class DomGameView implements GameView {
       this.board.setCourse(course);
       this.currentCourseId = course.definition.id;
     }
-    this.board.render(state, candidates);
     const candidatesOrPoints = candidates ?? listStartPoints(state, course);
+    this.board.render(state, candidatesOrPoints);
     this.panel.render(state, this.opponent, candidatesOrPoints);
   }
 
