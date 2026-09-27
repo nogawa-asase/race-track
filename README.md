@@ -1,4 +1,4 @@
-# claude-code-book-chapter8
+# claude-code-container
 
 本リポジトリは技術評論社より発行されている[「実践Claude Code入門 - 現場で活用するためのAIコーディングの思考法」](https://www.amazon.co.jp/dp/4297153548)のサンプルコードを管理するGitHubリポジトリです。
 
@@ -17,8 +17,8 @@ https://github.com/GenerativeAgents/claude-code-book
 ### 1. リポジトリのクローン
 
 ```bash
-git clone [このリポジトリ] claude-code-book-chapter8
-cd claude-code-book-chapter8
+git clone [このリポジトリ] claude-code-container
+cd claude-code-container
 ```
 
 ### 2. Dev Container経由で開く
