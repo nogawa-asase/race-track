@@ -89,7 +89,8 @@ function crossesEndCap(
   return distanceToSegment(cap.center, p0, p1) <= halfWidth + EPSILON;
 }
 
-function distanceToSegment(p: Point, a: Point, b: Point): number {
+/** 点から線分までの距離(端の切り落とし判定と、最短手数の表の枝刈りで使う) */
+export function distanceToSegment(p: Point, a: Point, b: Point): number {
   const ab = sub(b, a);
   const lenSq = dot(ab, ab);
   const t =

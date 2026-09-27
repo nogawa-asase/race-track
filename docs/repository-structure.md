@@ -111,6 +111,7 @@ domain/
 ├── table/
 │   ├── types.ts               # DistanceTable インターフェース
 │   ├── speedRange.ts          # 盤の大きさから速度の範囲を求める
+│   ├── stateIndex.ts          # 状態(位置×速度)と、表の添字の相互変換
 │   ├── buildDistanceTable.ts  # 後ろ向き幅優先探索
 │   └── tableCodec.ts          # 表とバイナリの相互変換(gzip の圧縮・展開は呼び出し側が行う)
 └── cpu/
@@ -400,12 +401,12 @@ tests/   ──→ 各層(テスト対象)
 - `domain/` の各分野(`course/`・`rules/`・`table/`・`cpu/`)の依存は、次の向きだけにする
 
 ```
-cpu/ ──→ table/ ──→ course/
-  │         │          ↑
-  └──→ rules/ ─────────┘
+cpu/ ──→ table/ ──→ rules/ ──→ course/
+  └──────────────────↑
 ```
 
-- `rules/` は `table/` に依存しない。P1の「危ない手」の判定は、`rules/listCandidates` が表を引数で受け取れるようにし、表の型だけを参照する
+- `table/` は `rules/` の `classifyMove`・`ACCELS_IN_ORDER`(候補の分類)を再利用する。ゴールの判定だけが必要なところ(最短手数の表の生成)は、判定の重複を避けるため `classifyMove` を経由せず `course.goalCrossing` を直接呼ぶ(`docs/functional-design.md`「アルゴリズム設計 > 4」の「同じ Course の判定を使う」を、候補の分類そのものの再利用にまで広げた)
+- `rules/` は `table/` に依存しない(逆方向の依存は作らない)。P1の「危ない手」の判定は、`rules/listCandidates` が表を引数で受け取れるようにし、表の型だけを参照する
 
 ## スケーリング戦略
 

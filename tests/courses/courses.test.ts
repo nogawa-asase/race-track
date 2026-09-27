@@ -1,5 +1,7 @@
 import { COURSES, getCourseDefinition } from '../../src/courses';
 import { buildCourse } from '../../src/domain/course/buildCourse';
+import { buildDistanceTable } from '../../src/domain/table/buildDistanceTable';
+import { speedRange } from '../../src/domain/table/speedRange';
 import {
   pathLength,
   pointAlongPath,
@@ -110,6 +112,86 @@ describe('芝の幅のチェック', () => {
     expect(minGrassGap(narrow)).toBeCloseTo(1, 1);
     expect(minGrassGap(narrow)).toBeLessThan(MIN_GRASS);
   });
+});
+
+describe('最短手数の表(PRDのKPI「CPUの行き詰まりゼロ」の一部)', () => {
+  /**
+   * 生成時間の目標(architecture.mdの「パフォーマンス要件」、1コース2秒以内)は、
+   * `npm run gen:tables` 単体の実行で満たすことを確かめている(design.mdの
+   * 「実装で見つかった性能上の問題と対策」)。このテストは、他のテストと同時に
+   * 実行され、CPUを取り合うぶん遅くなるため、目標そのものより緩い値を使い、
+   * 大きな性能劣化(実装の変更で探索が何倍も遅くなること)だけを検出する
+   */
+  const REGRESSION_GUARD_MS = 8000;
+
+  it.each(COURSES.map((c) => [c.name, c] as const))(
+    '%s の全スタート位置(速度0)は、最短手数が「なし」にならない',
+    (_name, definition) => {
+      // カバレッジ計測は実行を数倍遅くするため、既定のタイムアウト(5秒)では
+      // 足りないことがある(下のitの第3引数でタイムアウトを延ばす)
+      // Given
+      const course = buildCourse(definition);
+      const table = buildDistanceTable(course);
+
+      // Then
+      for (const start of course.startPoints) {
+        expect(
+          table.get(start, { x: 0, y: 0 }),
+          `(${start.x},${start.y})`
+        ).not.toBeNull();
+      }
+    },
+    30_000
+  );
+
+  it.each(COURSES.map((c) => [c.name, c] as const))(
+    '%s の表の生成は、大きく遅くならない(回帰の検出)',
+    (_name, definition) => {
+      // Given
+      const course = buildCourse(definition);
+      const t0 = performance.now();
+
+      // When
+      buildDistanceTable(course);
+
+      // Then
+      expect(performance.now() - t0).toBeLessThan(REGRESSION_GUARD_MS);
+    },
+    30_000
+  );
+
+  it.each(COURSES.map((c) => [c.name, c] as const))(
+    '%s でコース内から出せる速度は、速度の範囲(architecture.mdの計算式)に収まる',
+    (_name, definition) => {
+      // Given: コース内の格子点から、実際に見つかった最短手数の状態の速度の絶対値を集める
+      const course = buildCourse(definition);
+      const table = buildDistanceTable(course);
+      const { vxMax, vyMax } = speedRange(definition.boardSize);
+      let maxVx = 0;
+      let maxVy = 0;
+
+      // When
+      for (let x = 0; x < definition.boardSize.x; x++) {
+        for (let y = 0; y < definition.boardSize.y; y++) {
+          if (!course.isInside({ x, y })) continue;
+          for (let vx = -vxMax; vx <= vxMax; vx++) {
+            for (let vy = -vyMax; vy <= vyMax; vy++) {
+              if (table.get({ x, y }, { x: vx, y: vy }) !== null) {
+                maxVx = Math.max(maxVx, Math.abs(vx));
+                maxVy = Math.max(maxVy, Math.abs(vy));
+              }
+            }
+          }
+        }
+      }
+
+      // Then: 範囲の端(vxMax・vyMax)を実際に使い切っていない、
+      // つまり範囲が十分足りていることを確かめる
+      expect(maxVx).toBeLessThanOrEqual(vxMax);
+      expect(maxVy).toBeLessThanOrEqual(vyMax);
+    },
+    30_000
+  );
 });
 
 describe('コースの一覧', () => {

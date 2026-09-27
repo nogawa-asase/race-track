@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "prepare": "husky",
+    "gen:tables": "tsx scripts/generate-tables.ts",
+    "predev": "npm run gen:tables",
     "dev": "vite",
+    "prebuild": "npm run gen:tables",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "check:size": "tsx scripts/check-dist-size.ts",
