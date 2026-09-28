@@ -108,17 +108,29 @@ function renderArrowheadDefs(): SVGDefsElement {
   return defs;
 }
 
+/** 矢印(前回の慣性点への移動→今回の移動)のアニメーション時間 */
+const ARROW_SLIDE_MS = 300;
+/** 矢印が着地してから、中央の候補(慣性点そのもの)が現れるまでの間 */
+const CENTER_REVEAL_DELAY_MS = ARROW_SLIDE_MS;
+/** 中央の候補の後、残り8候補が現れるまでの間 */
+const OTHERS_REVEAL_DELAY_MS = ARROW_SLIDE_MS + 150;
+
 /**
- * 現在位置から慣性点への矢印。`animate` が true なら、
- * 手番が変わるたびに(プレビュー中の再描画では起こらないように)
- * すっと描かれるアニメーションを付ける
+ * 一つ前の点をZ、現在位置をA、今の勢いのまま進んだ場合の点(慣性点)をB
+ * とすると、矢印は「Z→A」の位置から「A→B」の位置へスライドする
+ * (Bは A+velocity で、Z→AもA→Bも同じ velocity ぶんの矢印になるため、
+ * 平行移動させるだけで正しい向き・長さのまま A→B に重なる)。
+ *
+ * `animate` が true で、かつ一つ前の点(Z)がある(=速度が0でない)ときだけ
+ * スライドさせる。それ以外(最初の1手・プレビュー変更だけの再描画)は
+ * A→B の位置に、動きなしでそのまま置く
  */
 function renderInertiaArrow(
+  prev: Vec | null,
   from: Vec,
   to: Vec,
   animate: boolean
 ): SVGLineElement {
-  const length = Math.hypot(to.x - from.x, to.y - from.y);
   const line = el('line', {
     x1: from.x,
     y1: from.y,
@@ -127,18 +139,31 @@ function renderInertiaArrow(
     class: 'inertia-arrow',
     'marker-end': `url(#${INERTIA_ARROWHEAD_ID})`,
   });
-  if (length > 0) {
-    line.style.strokeDasharray = `${length}`;
-    line.style.strokeDashoffset = animate ? `${length}` : '0';
-  }
-  if (animate && length > 0) {
-    line.animate([{ strokeDashoffset: length }, { strokeDashoffset: 0 }], {
-      duration: 300,
-      easing: 'ease-out',
-      fill: 'forwards',
-    });
+  if (animate && prev) {
+    line.animate(
+      [
+        { x1: prev.x, y1: prev.y, x2: from.x, y2: from.y },
+        { x1: from.x, y1: from.y, x2: to.x, y2: to.y },
+      ],
+      { duration: ARROW_SLIDE_MS, easing: 'ease-out', fill: 'forwards' }
+    );
   }
   return line;
+}
+
+/**
+ * 手番が変わった直後、候補をフェードインさせる。矢印がAB(慣性点)に
+ * 着地したタイミングでまず中央(加速なし)の候補、その少し後に残り8候補
+ * が現れるようにする
+ */
+function revealCandidateMark(mark: SVGElement, isCenter: boolean): void {
+  const delay = isCenter ? CENTER_REVEAL_DELAY_MS : OTHERS_REVEAL_DELAY_MS;
+  mark.animate([{ opacity: 0 }, { opacity: 1 }], {
+    duration: 150,
+    delay,
+    easing: 'ease-out',
+    fill: 'both',
+  });
 }
 
 /**
@@ -163,12 +188,20 @@ export function renderCandidateLayer(
   }
   const player = state.players[state.turn];
   const inertiaPoint = toDisplay(add(player.position!, player.velocity));
+  const trail = player.trail;
+  const prevPoint =
+    trail.length >= 2 ? toDisplay(trail[trail.length - 2]) : null;
   const children: SVGElement[] = [];
 
-  // 慣性点への矢印(現在位置から)
+  // 慣性点への矢印(前回の移動の矢印が、今回の移動の位置へスライドする)
   children.push(
     renderArrowheadDefs(),
-    renderInertiaArrow(toDisplay(player.position!), inertiaPoint, animateArrow)
+    renderInertiaArrow(
+      prevPoint,
+      toDisplay(player.position!),
+      inertiaPoint,
+      animateArrow
+    )
   );
 
   // プレビュー中の線分(慣性点や現在位置ではなく、実際の移動元から)
@@ -203,6 +236,11 @@ export function renderCandidateLayer(
     mark.dataset.pointX = String(candidate.target.x);
     mark.dataset.pointY = String(candidate.target.y);
     children.push(mark);
+
+    if (animateArrow && prevPoint) {
+      const isCenter = candidate.accel.x === 0 && candidate.accel.y === 0;
+      revealCandidateMark(mark, isCenter);
+    }
   }
 
   parent.replaceChildren(...children);
