@@ -53,10 +53,21 @@
   opacity: 0.9;
 }
 
-/* 慣性点 */
-.inertia-point {
+.trail-segment {
+  fill: none;
+  stroke-width: 0.15;
+  stroke-linecap: round;
+}
+
+/* 慣性点への矢印(現在位置から)。手番が変わるたびに、すっと描かれる */
+.inertia-arrow {
+  fill: none;
   stroke: var(--color-ink);
-  stroke-width: 0.05;
+  stroke-width: 0.06;
+}
+
+.inertia-arrowhead {
+  fill: var(--color-ink);
 }
 
 /* プレビューの線分 */

@@ -73,6 +73,7 @@ export class BoardView {
     state: GameState,
     candidatesOrPoints: readonly Candidate[] | readonly Vec[]
   ): void {
+    const justMovedColor = this.detectJustMovedColor(state);
     this.latestState = state;
     this.preview = null;
     if (state.phase === 'racing') {
@@ -82,18 +83,40 @@ export class BoardView {
       this.latestCandidates = [];
       this.latestStartPoints = candidatesOrPoints as readonly Vec[];
     }
-    renderTrailLayer(this.trailLayer, state);
-    this.redrawCandidates();
+    renderTrailLayer(this.trailLayer, state, justMovedColor);
+    this.redrawCandidates(true);
   }
 
-  private redrawCandidates(): void {
+  /**
+   * 直前の手で動いたプレイヤーの色を返す(軌跡が1点だけ増えたプレイヤー)。
+   * 新しい手番の描画のときだけ、その色の最後の線分をフェードさせる
+   */
+  private detectJustMovedColor(next: GameState): string | null {
+    const prev = this.latestState;
+    if (!prev) return null;
+    for (let i = 0; i < next.players.length; i++) {
+      const prevLength = prev.players[i]?.trail.length ?? 0;
+      const nextLength = next.players[i].trail.length;
+      if (nextLength === prevLength + 1) {
+        return next.players[i].color;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @param animate - 慣性点への矢印を、すっと描くアニメーションにするか。
+   *   新しい手番の描画(`render`)のときだけ true にする
+   */
+  private redrawCandidates(animate = false): void {
     if (!this.latestState) return;
     if (this.latestState.phase === 'racing') {
       renderCandidateLayer(
         this.candidateLayer,
         this.latestState,
         this.latestCandidates.length > 0 ? this.latestCandidates : null,
-        this.preview
+        this.preview,
+        animate
       );
       return;
     }

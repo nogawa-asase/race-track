@@ -87,17 +87,75 @@ function renderOccupied(
   return g;
 }
 
+const INERTIA_ARROWHEAD_ID = 'inertia-arrowhead';
+
+/** 矢じり(慣性点の矢印の先端)の定義。矢印の line 要素から marker-end で参照する */
+function renderArrowheadDefs(): SVGDefsElement {
+  const defs = el('defs', {});
+  const marker = el('marker', {
+    id: INERTIA_ARROWHEAD_ID,
+    viewBox: '0 0 10 10',
+    refX: 8,
+    refY: 5,
+    markerWidth: 5,
+    markerHeight: 5,
+    orient: 'auto-start-reverse',
+  });
+  marker.append(
+    el('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: 'inertia-arrowhead' })
+  );
+  defs.append(marker);
+  return defs;
+}
+
+/**
+ * 現在位置から慣性点への矢印。`animate` が true なら、
+ * 手番が変わるたびに(プレビュー中の再描画では起こらないように)
+ * すっと描かれるアニメーションを付ける
+ */
+function renderInertiaArrow(
+  from: Vec,
+  to: Vec,
+  animate: boolean
+): SVGLineElement {
+  const length = Math.hypot(to.x - from.x, to.y - from.y);
+  const line = el('line', {
+    x1: from.x,
+    y1: from.y,
+    x2: to.x,
+    y2: to.y,
+    class: 'inertia-arrow',
+    'marker-end': `url(#${INERTIA_ARROWHEAD_ID})`,
+  });
+  if (length > 0) {
+    line.style.strokeDasharray = `${length}`;
+    line.style.strokeDashoffset = animate ? `${length}` : '0';
+  }
+  if (animate && length > 0) {
+    line.animate([{ strokeDashoffset: length }, { strokeDashoffset: 0 }], {
+      duration: 300,
+      easing: 'ease-out',
+      fill: 'forwards',
+    });
+  }
+  return line;
+}
+
 /**
  * 慣性点・9候補・プレビューを描く。手番の切り替えのたびに呼ぶ。
  * candidates が null(スタート位置選び中)なら、候補の層は空にする
  *
  * @param preview - プレビュー中の候補の行き先(なければ null)
+ * @param animateArrow - 慣性点への矢印を、すっと描くアニメーションにするか。
+ *   新しい手番の描画のときだけ true にする(プレビュー変更だけの再描画で
+ *   毎回描き直されると煩わしいため)
  */
 export function renderCandidateLayer(
   parent: SVGGElement,
   state: GameState,
   candidates: readonly Candidate[] | null,
-  preview: Vec | null
+  preview: Vec | null,
+  animateArrow: boolean
 ): void {
   if (!candidates) {
     parent.replaceChildren();
@@ -107,23 +165,10 @@ export function renderCandidateLayer(
   const inertiaPoint = toDisplay(add(player.position!, player.velocity));
   const children: SVGElement[] = [];
 
-  // 慣性点の「+」
-  const s = 0.18;
+  // 慣性点への矢印(現在位置から)
   children.push(
-    el('line', {
-      x1: inertiaPoint.x - s,
-      y1: inertiaPoint.y,
-      x2: inertiaPoint.x + s,
-      y2: inertiaPoint.y,
-      class: 'inertia-point',
-    }),
-    el('line', {
-      x1: inertiaPoint.x,
-      y1: inertiaPoint.y - s,
-      x2: inertiaPoint.x,
-      y2: inertiaPoint.y + s,
-      class: 'inertia-point',
-    })
+    renderArrowheadDefs(),
+    renderInertiaArrow(toDisplay(player.position!), inertiaPoint, animateArrow)
   );
 
   // プレビュー中の線分(慣性点や現在位置ではなく、実際の移動元から)
