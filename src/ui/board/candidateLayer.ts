@@ -121,9 +121,16 @@ const OTHERS_REVEAL_DELAY_MS = ARROW_SLIDE_MS + 150;
  * (Bは A+velocity で、Z→AもA→Bも同じ velocity ぶんの矢印になるため、
  * 平行移動させるだけで正しい向き・長さのまま A→B に重なる)。
  *
+ * 矢印の要素自体は最初から A→B(最終的な位置)に置き、CSS の
+ * `transform: translate()` で Z→A の位置にずらしたところから
+ * アニメーションで戻す。x1/y1/x2/y2 は SVG の属性であって CSS
+ * プロパティではないため Web Animations では実質動かせず、
+ * 見た目上アニメーションしない(だけ再生中と報告される)ことがある。
+ * `transform` は CSS プロパティとして確実にアニメーションできるため、
+ * こちらを使う
+ *
  * `animate` が true で、かつ一つ前の点(Z)がある(=速度が0でない)ときだけ
- * スライドさせる。それ以外(最初の1手・プレビュー変更だけの再描画)は
- * A→B の位置に、動きなしでそのまま置く
+ * スライドさせる。それ以外(最初の1手)は A→B の位置に、動きなしで置く
  */
 function renderInertiaArrow(
   prev: Vec | null,
@@ -140,15 +147,45 @@ function renderInertiaArrow(
     'marker-end': `url(#${INERTIA_ARROWHEAD_ID})`,
   });
   if (animate && prev) {
+    const dx = prev.x - from.x;
+    const dy = prev.y - from.y;
     line.animate(
       [
-        { x1: prev.x, y1: prev.y, x2: from.x, y2: from.y },
-        { x1: from.x, y1: from.y, x2: to.x, y2: to.y },
+        { transform: `translate(${dx}px, ${dy}px)` },
+        { transform: 'translate(0px, 0px)' },
       ],
       { duration: ARROW_SLIDE_MS, easing: 'ease-out', fill: 'forwards' }
     );
   }
   return line;
+}
+
+/**
+ * 現在位置から慣性点への矢印だけを描く、専用の層。軌跡・車の層より
+ * 手前(下)に置いて、赤・青の現在位置の点(車)の下に矢印が来るようにする
+ * (機能設計書の「軌跡・車」表示を、矢印が隠さないようにするため)。
+ * 手番が変わるたびに呼ぶ(プレビュー変更では呼ばない。矢印はプレビュー
+ * に関係しないため)
+ */
+export function renderInertiaArrowLayer(
+  parent: SVGGElement,
+  state: GameState,
+  animate: boolean
+): void {
+  if (state.phase !== 'racing') {
+    parent.replaceChildren();
+    return;
+  }
+  const player = state.players[state.turn];
+  const from = toDisplay(player.position!);
+  const to = toDisplay(add(player.position!, player.velocity));
+  const trail = player.trail;
+  const prev = trail.length >= 2 ? toDisplay(trail[trail.length - 2]) : null;
+
+  parent.replaceChildren(
+    renderArrowheadDefs(),
+    renderInertiaArrow(prev, from, to, animate)
+  );
 }
 
 /**
@@ -167,42 +204,30 @@ function revealCandidateMark(mark: SVGElement, isCenter: boolean): void {
 }
 
 /**
- * 慣性点・9候補・プレビューを描く。手番の切り替えのたびに呼ぶ。
+ * 9候補・プレビューを描く。手番の切り替えのたびに呼ぶ。
  * candidates が null(スタート位置選び中)なら、候補の層は空にする
+ * (慣性点への矢印は、別の層に `renderInertiaArrowLayer` で描く)
  *
  * @param preview - プレビュー中の候補の行き先(なければ null)
- * @param animateArrow - 慣性点への矢印を、すっと描くアニメーションにするか。
+ * @param animateReveal - 中央→残り8候補の順にフェードインさせるか。
  *   新しい手番の描画のときだけ true にする(プレビュー変更だけの再描画で
- *   毎回描き直されると煩わしいため)
+ *   毎回フェードし直されると煩わしいため)
  */
 export function renderCandidateLayer(
   parent: SVGGElement,
   state: GameState,
   candidates: readonly Candidate[] | null,
   preview: Vec | null,
-  animateArrow: boolean
+  animateReveal: boolean
 ): void {
   if (!candidates) {
     parent.replaceChildren();
     return;
   }
   const player = state.players[state.turn];
-  const inertiaPoint = toDisplay(add(player.position!, player.velocity));
   const trail = player.trail;
-  const prevPoint =
-    trail.length >= 2 ? toDisplay(trail[trail.length - 2]) : null;
+  const hasPrevPoint = trail.length >= 2;
   const children: SVGElement[] = [];
-
-  // 慣性点への矢印(前回の移動の矢印が、今回の移動の位置へスライドする)
-  children.push(
-    renderArrowheadDefs(),
-    renderInertiaArrow(
-      prevPoint,
-      toDisplay(player.position!),
-      inertiaPoint,
-      animateArrow
-    )
-  );
 
   // プレビュー中の線分(慣性点や現在位置ではなく、実際の移動元から)
   if (preview) {
@@ -237,7 +262,7 @@ export function renderCandidateLayer(
     mark.dataset.pointY = String(candidate.target.y);
     children.push(mark);
 
-    if (animateArrow && prevPoint) {
+    if (animateReveal && hasPrevPoint) {
       const isCenter = candidate.accel.x === 0 && candidate.accel.y === 0;
       revealCandidateMark(mark, isCenter);
     }
