@@ -4,7 +4,12 @@
   aspect-ratio: 1;
   width: 100%;
   max-width: 100%;
+  box-sizing: border-box;
   touch-action: none; /* タップの2段階確定を、ブラウザのジェスチャーに邪魔されないようにする */
+  border: 3px solid var(--color-ink);
+  border-radius: 16px;
+  box-shadow: 6px 6px 0 var(--color-ink);
+  overflow: hidden; /* border-radius で盤の角(芝の四角)も丸く切り取る */
 }
 
 .board-candidate {
@@ -23,7 +28,8 @@
 }
 
 .board-grid-on-road .board-grid-line {
-  opacity: 0.55;
+  /* コースのマス目は、道の色を濃くしても常にはっきり見えるようにする */
+  opacity: 0.75;
 }
 
 .board-line-label {
@@ -32,7 +38,7 @@
   stroke-width: 0.04;
   paint-order: stroke;
   font-weight: bold;
-  font-family: sans-serif;
+  font-family: var(--font-heading);
   letter-spacing: 0.02px;
   pointer-events: none;
   user-select: none;
@@ -49,13 +55,13 @@
 
 /* 慣性点 */
 .inertia-point {
-  stroke: #2c2c2c;
+  stroke: var(--color-ink);
   stroke-width: 0.05;
 }
 
 /* プレビューの線分 */
 .preview-line {
-  stroke: #2c2c2c;
+  stroke: var(--color-ink);
   stroke-width: 0.07;
   stroke-dasharray: 0.16 0.12;
   fill: none;
@@ -73,7 +79,7 @@
 }
 .mark-goal {
   fill: var(--color-goal-gold);
-  stroke: #8a6d00;
+  stroke: var(--color-ink);
   stroke-width: 0.02;
 }
 .mark-offcourse,

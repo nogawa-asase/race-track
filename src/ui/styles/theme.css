@@ -1,15 +1,36 @@
 /**
  * 色のCSS変数(機能設計書「カラーコーディング」)。
+ * レトロアーケード風の配色(太い縁取り・べたっとした影と合わせる)。
  * P1のダークモードでは、この変数の値だけを切り替える(この作業ではまだ扱わない)
  */
 :root {
-  --color-red: #c0392b; /* 赤鉛筆(先攻) */
-  --color-blue: #1d5fd6; /* 青鉛筆(後攻)。黒に近い濃紺だと「色が付いていない」ように見えるため、はっきり青とわかる色にする */
-  --color-grass: #9acd32; /* 芝 */
-  --color-grid: #ffffff; /* 方眼 */
-  --color-road: #7f8c8d; /* 道 */
+  --color-red: #ff4d4d; /* 赤鉛筆(先攻) */
+  --color-blue: #2f8fff; /* 青鉛筆(後攻) */
+  --color-grass: #7ed957; /* 芝 */
+  --color-grid: #ffffff; /* 方眼(マス目)。道の上でもはっきり見えるようにする */
+  --color-road: #4a4767; /* 道 */
   --color-start-line: #ffffff; /* スタートライン(赤鉛筆の車の色と同じにならないよう、中立な色にする) */
-  --color-goal-gold: #f1c40f; /* ゴールできる候補・ゴールラインの市松模様 */
-  --color-disabled: #95a5a6; /* 選べない候補 */
-  --color-dangerous: #e67e22; /* 危ない候補(P1) */
+  --color-goal-gold: #ffd23f; /* ゴールできる候補・ゴールラインの市松模様 */
+  --color-disabled: #8b8b9e; /* 選べない候補 */
+  --color-dangerous: #ff8c3a; /* 危ない候補(P1) */
+  --color-ink: #201127; /* 太い縁取り・文字の色 */
+  --color-card: #fff6df; /* カード(パネル・ダイアログ)の背景 */
+  --color-page: #2a1b3d; /* ページ全体の背景 */
+  --font-heading: 'Baloo 2', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--color-page);
+  color: var(--color-card);
+  font-family: var(--font-body);
+}
+
+h1 {
+  font-family: var(--font-heading);
+}
+
+input[type='checkbox'] {
+  accent-color: var(--color-red);
 }

@@ -2,8 +2,14 @@
 
 .settings-screen,
 .result-screen {
-  padding: 1rem;
+  padding: 1.25rem;
   max-width: 480px;
+  box-sizing: border-box;
+  background: var(--color-card);
+  color: var(--color-ink);
+  border: 3px solid var(--color-ink);
+  border-radius: 20px;
+  box-shadow: 6px 6px 0 var(--color-ink);
 }
 
 .settings-screen .field {
@@ -19,6 +25,14 @@
   font-size: 1rem;
 }
 
+.settings-screen select {
+  border: 2px solid var(--color-ink);
+  border-radius: 8px;
+  background: #fffdf5;
+  color: var(--color-ink);
+  padding: 0 0.5rem;
+}
+
 .settings-screen .buttons,
 .result-screen .buttons {
   display: flex;
@@ -30,6 +44,13 @@
 .result-screen button {
   min-height: 44px;
   padding: 0 1rem;
+  border: 3px solid var(--color-ink);
+  border-radius: 12px;
+  background: #ffe27a;
+  color: var(--color-ink);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  box-shadow: 3px 3px 0 var(--color-ink);
 }
 
 .result-screen {
@@ -37,13 +58,11 @@
   top: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 8px;
   margin: 1rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .result-screen .winner {
   font-size: 1.25rem;
   font-weight: bold;
+  font-family: var(--font-heading);
 }

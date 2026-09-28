@@ -1,15 +1,19 @@
 /** ダイアログ(確認・メッセージ・ルール説明)の見た目 */
 
 dialog {
-  border: none;
-  border-radius: 8px;
+  border: 3px solid var(--color-ink);
+  border-radius: 20px;
   padding: 1.25rem;
   max-width: min(90vw, 480px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: 6px 6px 0 var(--color-ink);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  box-sizing: border-box;
 }
 
 dialog::backdrop {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(42, 27, 61, 0.55);
 }
 
 dialog .dialog-message {
@@ -23,10 +27,21 @@ dialog .dialog-buttons {
   justify-content: flex-end;
 }
 
-dialog .dialog-buttons button {
+/*
+ * ".dialog-buttons" の外(RulesDialog の「閉じる」など、単独で置かれた
+ * ボタン)にも同じ見た目を当てるため、"dialog" 配下のボタン全体を対象にする
+ */
+dialog button {
   min-height: 44px;
   min-width: 44px;
   padding: 0 1rem;
+  border: 3px solid var(--color-ink);
+  border-radius: 12px;
+  background: #ffe27a;
+  color: var(--color-ink);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  box-shadow: 3px 3px 0 var(--color-ink);
 }
 
 .rules-dialog {
@@ -37,9 +52,14 @@ dialog .dialog-buttons button {
 
 .rules-dialog h2 {
   margin-top: 0;
+  font-family: var(--font-heading);
 }
 
 .rules-dialog .rules-diagram {
   display: block;
   margin: 0.5rem auto;
+}
+
+.rules-dialog button {
+  margin-top: 1rem;
 }
