@@ -6,6 +6,7 @@ import { StartPositionPad } from './StartPositionPad';
 export interface ControlPanelCallbacks {
   onCandidateSelect(accel: Vec): void;
   onStartPointSelect(point: Vec): void;
+  onStartPreviewChange(point: Vec | null): void;
   onBackToSettings(): void;
   onShowRules(): void;
 }
@@ -44,7 +45,8 @@ export class ControlPanel {
     );
     this.startPositionPad = new StartPositionPad(
       this.padContainer,
-      callbacks.onStartPointSelect
+      callbacks.onStartPointSelect,
+      callbacks.onStartPreviewChange
     );
 
     const buttons = document.createElement('div');
@@ -84,6 +86,9 @@ export class ControlPanel {
     this.turnEl.textContent = turnMessage(opponent, player.kind, player.color);
     this.turnEl.className = `turn-indicator color-${player.color}`;
     this.roundEl.textContent = `周回: ${state.round}`;
+    // スタート位置選び中は周回がまだ始まっていない(常に0)ため、意味の
+    // ない表示になる。レース中だけ見せる
+    this.roundEl.hidden = state.phase !== 'racing';
 
     if (state.phase === 'racing') {
       this.directionPad.render(candidatesOrPoints as Candidate[], player.color);
@@ -92,6 +97,10 @@ export class ControlPanel {
       this.startPositionPad.render(candidatesOrPoints as Vec[]);
       this.setPadVisible('start');
     }
+    // CPUの手番では、選べない(=自分のものではない)候補のパッドを
+    // 見せる必要がない。一瞬で決まるため、パッドごと隠して
+    // 「考え中…」の表示だけにする
+    this.padContainer.hidden = player.kind === 'cpu';
   }
 
   private setPadVisible(which: 'direction' | 'start'): void {

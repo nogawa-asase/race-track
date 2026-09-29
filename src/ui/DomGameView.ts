@@ -62,6 +62,7 @@ export class DomGameView implements GameView {
     this.panel = new ControlPanel(this.raceScreen, {
       onCandidateSelect: callbacks.onPadSelected,
       onStartPointSelect: callbacks.onPointSelected,
+      onStartPreviewChange: (point) => this.board.setPreview(point),
       onBackToSettings: callbacks.onBackToSettings,
       onShowRules: () => this.openRules(callbacks),
     });

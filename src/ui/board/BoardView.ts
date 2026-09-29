@@ -143,6 +143,16 @@ export class BoardView {
     );
   }
 
+  /**
+   * スタート位置選びのパッド(←→/↑↓)でプレビューが変わったときに呼ぶ。
+   * 盤上のマウス・タッチのプレビューと同じ仕組みで、車の点を候補の位置に
+   * 表示する
+   */
+  setPreview(point: Vec | null): void {
+    this.preview = point;
+    this.redrawCandidates();
+  }
+
   /** 移動アニメーション。完了で解決する Promise を返す */
   animateMove(player: number, from: Vec, to: Vec): Promise<void> {
     const carEl = this.trailLayer.querySelector<SVGCircleElement>(

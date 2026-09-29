@@ -14,7 +14,8 @@ export class StartPositionPad {
 
   constructor(
     container: HTMLElement,
-    private readonly onSelect: (point: Vec) => void
+    private readonly onSelect: (point: Vec) => void,
+    private readonly onPreviewChange: (point: Vec | null) => void
   ) {
     this.container = document.createElement('div');
     this.container.className = 'start-position-pad';
@@ -42,6 +43,7 @@ export class StartPositionPad {
   render(points: readonly Vec[]): void {
     this.points = points;
     this.previewIndex = Math.floor((points.length - 1) / 2);
+    this.updateArrowDirection();
     this.redraw();
   }
 
@@ -66,6 +68,26 @@ export class StartPositionPad {
     }
   }
 
+  /**
+   * スタートラインの向きに矢印を合わせる(縦のラインなら↑↓、横のラインなら
+   * ←→)。並び順の先頭→末尾で座標がどちらへ動くかを見て、見た目の向きと
+   * 矢印・previewIndexの増減が一致するようにする
+   */
+  private updateArrowDirection(): void {
+    if (this.points.length < 2) return;
+    const first = this.points[0];
+    const last = this.points[this.points.length - 1];
+    const dx = last.x - first.x;
+    const dy = last.y - first.y;
+    if (Math.abs(dy) > Math.abs(dx)) {
+      this.nextButton.textContent = dy >= 0 ? '↓' : '↑';
+      this.prevButton.textContent = dy >= 0 ? '↑' : '↓';
+    } else {
+      this.nextButton.textContent = dx >= 0 ? '→' : '←';
+      this.prevButton.textContent = dx >= 0 ? '←' : '→';
+    }
+  }
+
   private redraw(): void {
     this.prevButton.disabled =
       this.points.length === 0 || this.previewIndex <= 0;
@@ -75,6 +97,7 @@ export class StartPositionPad {
     const point = this.previewedPoint;
     this.confirmButton.dataset.previewX = point ? String(point.x) : '';
     this.confirmButton.dataset.previewY = point ? String(point.y) : '';
+    this.onPreviewChange(point);
   }
 
   destroy(): void {
