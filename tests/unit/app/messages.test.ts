@@ -23,15 +23,15 @@ describe('messages', () => {
     expect(turnMessage('cpu', 'cpu', 'blue')).toBe('CPU(青鉛筆)が考え中…');
   });
 
-  it('くじの結果(CPU戦、あなたが先攻)', () => {
+  it('おまかせの結果(CPU戦、あなたが先攻)', () => {
     expect(lotteryMessage('cpu', 'human', 'red')).toBe(
-      'くじの結果、あなたが先攻(赤鉛筆)です'
+      'おまかせの結果、あなたが先攻(赤鉛筆)です'
     );
   });
 
-  it('くじの結果(CPU戦、CPUが先攻)', () => {
+  it('おまかせの結果(CPU戦、CPUが先攻)', () => {
     expect(lotteryMessage('cpu', 'cpu', 'red')).toBe(
-      'くじの結果、CPUが先攻(赤鉛筆)です'
+      'おまかせの結果、CPUが先攻(赤鉛筆)です'
     );
   });
 

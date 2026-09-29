@@ -25,8 +25,8 @@ export function thinkingMessage(color: PenColor): string {
 }
 
 /**
- * くじの結果の表示。人同士は showLottery を呼ばず、代わりにこの関数を
- * (人同士向けの)一度だけの表示に使う
+ * 「おまかせ」(先攻後攻のランダム決定)の結果の表示。人同士は showLottery を
+ * 呼ばず、代わりにこの関数を(人同士向けの)一度だけの表示に使う
  */
 export function lotteryMessage(
   opponent: 'cpu' | 'human',
@@ -37,7 +37,7 @@ export function lotteryMessage(
     return `${colorName(firstColor)}鉛筆が先攻です`;
   }
   const who = firstColorOwner === 'human' ? 'あなた' : 'CPU';
-  return `くじの結果、${who}が先攻(${colorName(firstColor)}鉛筆)です`;
+  return `おまかせの結果、${who}が先攻(${colorName(firstColor)}鉛筆)です`;
 }
 
 /** 次の手番で行き止まりになる点に移動したときの予告 */
