@@ -29,6 +29,11 @@ export class ControlPanel {
     this.container = document.createElement('div');
     this.container.className = 'control-panel';
 
+    // 「設定に戻る」「ルール説明」は、手番・パッドの薄クリーム色の枠の
+    // 外(下)に置く。枠自体は card 要素にまとめる
+    const card = document.createElement('div');
+    card.className = 'control-panel-card';
+
     this.turnEl = document.createElement('p');
     this.turnEl.className = 'turn-indicator';
     this.roundEl = document.createElement('p');
@@ -61,13 +66,8 @@ export class ControlPanel {
     rulesButton.addEventListener('click', callbacks.onShowRules);
     buttons.append(backButton, rulesButton);
 
-    this.container.append(
-      this.turnEl,
-      this.roundEl,
-      this.thinkingEl,
-      this.padContainer,
-      buttons
-    );
+    card.append(this.turnEl, this.roundEl, this.thinkingEl, this.padContainer);
+    this.container.append(card, buttons);
     container.append(this.container);
   }
 
