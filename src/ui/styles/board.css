@@ -51,6 +51,8 @@
 /* 軌跡・車 */
 .trail-point {
   opacity: 0.9;
+  stroke: var(--color-ink);
+  stroke-width: 0.04;
 }
 
 .trail-segment {
