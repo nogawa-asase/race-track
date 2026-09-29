@@ -4,6 +4,7 @@
 .result-screen {
   padding: 1.25rem;
   max-width: 480px;
+  margin: 0 auto;
   box-sizing: border-box;
   background: var(--color-card);
   color: var(--color-ink);
