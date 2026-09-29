@@ -143,8 +143,10 @@ function goalDirection(course: Course): Vec {
 }
 
 /**
- * スタート・ゴールラインの脇に文字を描く。ラインそのものの上ではなく、
- * 道の内側(direction の向き)に少しずらして置く
+ * スタート・ゴールラインの脇に文字を描く。ラインそのものの上(道の中)では
+ * なく、道の外側(direction と逆向き)の芝の上に少しずらして置く。
+ * 距離は道の半幅(halfWidth)を超える値にし、道の縁をまたいで芝の側まで
+ * 出るようにする
  */
 function renderLineLabel(
   text: string,
@@ -154,11 +156,11 @@ function renderLineLabel(
   course: Course
 ): SVGTextElement {
   const mid = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
-  const distance = Math.max(1, course.definition.halfWidth * 0.7);
   const fontSize = Math.max(
     0.7,
     Math.min(1.4, course.definition.halfWidth * 0.6)
   );
+  const distance = course.definition.halfWidth + fontSize * 0.6;
   const pos = {
     x: mid.x + direction.x * distance,
     y: mid.y + direction.y * distance,
@@ -189,7 +191,13 @@ function renderStartLine(course: Course): SVGGElement {
       stroke: 'var(--color-start-line)',
       'stroke-width': 0.3,
     }),
-    renderLineLabel('START', from, to, startDirection(course), course)
+    renderLineLabel(
+      'START',
+      from,
+      to,
+      { x: -startDirection(course).x, y: -startDirection(course).y },
+      course
+    )
   );
   return g;
 }
@@ -244,10 +252,7 @@ function renderGoalLine(course: Course): SVGGElement {
       'GOAL',
       from,
       to,
-      {
-        x: -goalDirection(course).x,
-        y: -goalDirection(course).y,
-      },
+      { x: goalDirection(course).x, y: goalDirection(course).y },
       course
     )
   );
