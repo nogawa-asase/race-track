@@ -38,9 +38,9 @@ export class SettingsScreen {
       { value: 'strong', label: 'つよい' },
     ]);
     this.turnOrderSelect = this.buildSelect('turnOrder', [
-      { value: 'lottery', label: 'くじ' },
-      { value: 'first', label: '先攻' },
-      { value: 'second', label: '後攻' },
+      { value: 'lottery', label: 'おまかせ' },
+      { value: 'first', label: '先攻: 相手よりも先にスタートできて有利' },
+      { value: 'second', label: '後攻: 同着なら後攻が勝ち' },
     ]);
     this.alertCheckbox = document.createElement('input');
     this.alertCheckbox.type = 'checkbox';
@@ -51,6 +51,7 @@ export class SettingsScreen {
     this.cpuLevelField = this.field('CPUの強さ', this.cpuLevelSelect);
     this.turnOrderField = this.field('先攻後攻', this.turnOrderSelect);
     const alertField = this.field('行き止まりのアラート', this.alertCheckbox);
+    alertField.classList.add('field-checkbox');
 
     const startButton = document.createElement('button');
     startButton.type = 'button';
