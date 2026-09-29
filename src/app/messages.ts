@@ -4,24 +4,38 @@ function colorName(color: PenColor): string {
   return color === 'red' ? '赤' : '青';
 }
 
+/**
+ * プレイヤーの表示名(機能設計書「メッセージ」)。「鉛筆」は付けず、色名だけ、
+ * または(CPU戦のときだけ)「あなた」「CPU」に色名を添えた形にする
+ */
+export function playerLabel(
+  opponent: 'cpu' | 'human',
+  playerKind: 'human' | 'cpu',
+  color: PenColor
+): string {
+  if (opponent === 'human') {
+    return colorName(color);
+  }
+  return playerKind === 'cpu'
+    ? `CPU(${colorName(color)})`
+    : `あなた(${colorName(color)})`;
+}
+
 /** 手番のプレイヤーの表示(機能設計書「メッセージ」) */
 export function turnMessage(
   opponent: 'cpu' | 'human',
   playerKind: 'human' | 'cpu',
   color: PenColor
 ): string {
-  if (opponent === 'human') {
-    return `${colorName(color)}鉛筆の番です`;
-  }
-  if (playerKind === 'cpu') {
+  if (playerKind === 'cpu' && opponent === 'cpu') {
     return thinkingMessage(color);
   }
-  return `あなた(${colorName(color)}鉛筆)の番です`;
+  return `${playerLabel(opponent, playerKind, color)}の番です`;
 }
 
 /** CPUの手番の表示 */
 export function thinkingMessage(color: PenColor): string {
-  return `CPU(${colorName(color)}鉛筆)が考え中…`;
+  return `CPU(${colorName(color)})が考え中…`;
 }
 
 /**
@@ -34,10 +48,16 @@ export function lotteryMessage(
   firstColor: PenColor
 ): string {
   if (opponent === 'human') {
-    return `${colorName(firstColor)}鉛筆が先攻です`;
+    return `${colorName(firstColor)}が先攻です`;
   }
   const who = firstColorOwner === 'human' ? 'あなた' : 'CPU';
   return `${who}が先攻です`;
+}
+
+/** 表示名を組み立てるのに必要な、プレイヤーの種類と色 */
+export interface PlayerRef {
+  readonly kind: 'human' | 'cpu';
+  readonly color: PenColor;
 }
 
 /** 次の手番で行き止まりになる点に移動したときの予告 */
@@ -45,18 +65,24 @@ export const DEAD_END_WARNING = '次の手番では、どこにも進めませ�
 
 /** 行き止まりで決着したときの表示 */
 export function deadEndResultMessage(
-  loserColor: PenColor,
-  winnerColor: PenColor
+  opponent: 'cpu' | 'human',
+  loser: PlayerRef,
+  winner: PlayerRef
 ): string {
-  return `${colorName(loserColor)}鉛筆は、どこにも進めません。${colorName(winnerColor)}鉛筆の勝ちです`;
+  const loserLabel = playerLabel(opponent, loser.kind, loser.color);
+  const winnerLabel = playerLabel(opponent, winner.kind, winner.color);
+  return `${loserLabel}は、どこにも進めません。${winnerLabel}の勝ちです`;
 }
 
 /** 先攻がゴールし、後攻の手番がまだ残っているときの表示 */
 export function tieRulePendingMessage(
-  goaledColor: PenColor,
-  opponentColor: PenColor
+  opponent: 'cpu' | 'human',
+  goaled: PlayerRef,
+  otherPlayer: PlayerRef
 ): string {
-  return `${colorName(goaledColor)}鉛筆がゴール! ${colorName(opponentColor)}鉛筆がこの手でゴールすれば、同着ルールで${colorName(opponentColor)}鉛筆の勝ちです`;
+  const goaledLabel = playerLabel(opponent, goaled.kind, goaled.color);
+  const otherLabel = playerLabel(opponent, otherPlayer.kind, otherPlayer.color);
+  return `${goaledLabel}がゴール! ${otherLabel}がこの手でゴールすれば、同着ルールで${otherLabel}の勝ちです`;
 }
 
 /** 設定に戻る前の確認 */

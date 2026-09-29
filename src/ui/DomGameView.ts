@@ -118,8 +118,12 @@ export class DomGameView implements GameView {
     this.panel.setThinking(visible);
   }
 
-  showResult(result: GameResult, state: GameState): void {
-    this.resultScreen.show(result, state);
+  showResult(
+    result: GameResult,
+    state: GameState,
+    opponent: 'cpu' | 'human'
+  ): void {
+    this.resultScreen.show(result, state, opponent);
   }
 
   confirm(message: string): Promise<boolean> {

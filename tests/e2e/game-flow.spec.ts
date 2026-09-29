@@ -206,7 +206,7 @@ test.describe('ゲームの流れ(機能設計書「画面遷移」)', () => {
     // Then
     await expect(page.locator('.result-screen')).toBeVisible();
     await expect(page.locator('.result-screen .winner')).toContainText(
-      '鉛筆の勝ち'
+      'の勝ち'
     );
   });
 

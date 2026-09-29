@@ -104,7 +104,7 @@ describe('GameController', () => {
 
       // Then
       expect(view.lotteryShown).toEqual([]);
-      expect(view.messages).toEqual(['赤鉛筆が先攻です']);
+      expect(view.messages).toEqual(['赤が先攻です']);
     });
   });
 
@@ -312,7 +312,7 @@ describe('GameController', () => {
       expect(view.results[0].result.winner).toBe(1);
       expect(
         view.messages.some((m) =>
-          m.includes('どこにも進めません。青鉛筆の勝ちです')
+          m.includes('どこにも進めません。青の勝ちです')
         )
       ).toBe(true);
     });

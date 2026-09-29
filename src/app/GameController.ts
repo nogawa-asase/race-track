@@ -311,8 +311,9 @@ export class GameController {
         const opponentIndex = 1 - playerIndex;
         await this.view.showMessage(
           tieRulePendingMessage(
-            movedPlayer.color,
-            this.state.players[opponentIndex].color
+            this.settings!.opponent,
+            movedPlayer,
+            this.state.players[opponentIndex]
           )
         );
         if (!this.isCurrent(token)) return;
@@ -334,11 +335,11 @@ export class GameController {
       const loser = this.state.players[1 - result.winner];
       const winner = this.state.players[result.winner];
       await this.view.showMessage(
-        deadEndResultMessage(loser.color, winner.color)
+        deadEndResultMessage(this.settings!.opponent, loser, winner)
       );
       if (!this.isCurrent(token)) return;
     }
-    this.view.showResult(result, this.state);
+    this.view.showResult(result, this.state, this.settings!.opponent);
   }
 
   private async returnToSettingsAfterError(): Promise<void> {

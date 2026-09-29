@@ -25,7 +25,11 @@ export interface GameView {
   /** メッセージを表示し、閉じられるまで待つ */
   showMessage(message: string): Promise<void>;
   showThinking(visible: boolean): void;
-  showResult(result: GameResult, state: GameState): void;
+  showResult(
+    result: GameResult,
+    state: GameState,
+    opponent: 'cpu' | 'human'
+  ): void;
   /** 確認ダイアログを表示し、答え(はい/いいえ)を返す */
   confirm(message: string): Promise<boolean>;
 }

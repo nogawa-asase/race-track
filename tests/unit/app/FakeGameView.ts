@@ -35,7 +35,11 @@ export class FakeGameView implements GameView {
   }[] = [];
   readonly animations: { player: number; from: Vec; to: Vec }[] = [];
   readonly thinkingCalls: boolean[] = [];
-  readonly results: { result: GameResult; state: GameState }[] = [];
+  readonly results: {
+    result: GameResult;
+    state: GameState;
+    opponent: 'cpu' | 'human';
+  }[] = [];
   lotteryShown: ('human' | 'cpu')[] = [];
 
   /** confirm の答えを、呼ばれる順に積んでおく */
@@ -94,8 +98,12 @@ export class FakeGameView implements GameView {
     this.thinkingCalls.push(visible);
   }
 
-  showResult(result: GameResult, state: GameState): void {
-    this.results.push({ result, state });
+  showResult(
+    result: GameResult,
+    state: GameState,
+    opponent: 'cpu' | 'human'
+  ): void {
+    this.results.push({ result, state, opponent });
   }
 
   confirm(_message: string): Promise<boolean> {

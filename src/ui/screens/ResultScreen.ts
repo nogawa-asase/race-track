@@ -1,17 +1,9 @@
-import type {
-  GameResult,
-  GameState,
-  PenColor,
-  ResultReason,
-} from '../../domain/types';
+import { playerLabel } from '../../app/messages';
+import type { GameResult, GameState, ResultReason } from '../../domain/types';
 
 export interface ResultScreenCallbacks {
   onRetry(): void;
   onBackToSettings(): void;
-}
-
-function colorName(color: PenColor): string {
-  return color === 'red' ? '赤' : '青';
 }
 
 function reasonLabel(reason: ResultReason): string {
@@ -58,12 +50,15 @@ export class ResultScreen {
     container.append(this.container);
   }
 
-  show(result: GameResult, state: GameState): void {
-    const winnerColor = state.players[result.winner].color;
-    this.winnerEl.textContent = `${colorName(winnerColor)}鉛筆の勝ち!`;
+  show(result: GameResult, state: GameState, opponent: 'cpu' | 'human'): void {
+    const winner = state.players[result.winner];
+    this.winnerEl.textContent = `${playerLabel(opponent, winner.kind, winner.color)}の勝ち!`;
     this.reasonEl.textContent = `決着の理由: ${reasonLabel(result.reason)}`;
     this.movesEl.textContent = state.players
-      .map((p, i) => `${colorName(p.color)}鉛筆: ${result.moveCounts[i]}手`)
+      .map(
+        (p, i) =>
+          `${playerLabel(opponent, p.kind, p.color)}: ${result.moveCounts[i]}手`
+      )
       .join(' / ');
     this.container.hidden = false;
   }
