@@ -37,7 +37,7 @@ export function lotteryMessage(
     return `${colorName(firstColor)}鉛筆が先攻です`;
   }
   const who = firstColorOwner === 'human' ? 'あなた' : 'CPU';
-  return `おまかせの結果、${who}が先攻(${colorName(firstColor)}鉛筆)です`;
+  return `${who}が先攻です`;
 }
 
 /** 次の手番で行き止まりになる点に移動したときの予告 */

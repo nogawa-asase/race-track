@@ -24,15 +24,11 @@ describe('messages', () => {
   });
 
   it('おまかせの結果(CPU戦、あなたが先攻)', () => {
-    expect(lotteryMessage('cpu', 'human', 'red')).toBe(
-      'おまかせの結果、あなたが先攻(赤鉛筆)です'
-    );
+    expect(lotteryMessage('cpu', 'human', 'red')).toBe('あなたが先攻です');
   });
 
   it('おまかせの結果(CPU戦、CPUが先攻)', () => {
-    expect(lotteryMessage('cpu', 'cpu', 'red')).toBe(
-      'おまかせの結果、CPUが先攻(赤鉛筆)です'
-    );
+    expect(lotteryMessage('cpu', 'cpu', 'red')).toBe('CPUが先攻です');
   });
 
   it('人同士のレース開始', () => {
