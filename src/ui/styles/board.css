@@ -106,3 +106,7 @@
 .is-previewed {
   filter: drop-shadow(0 0 0.06px #000) drop-shadow(0 0 0.06px #000);
 }
+/* スタート位置選びのプレビューには影を付けない(大きさの違いだけで示す) */
+.is-start-preview {
+  filter: none;
+}

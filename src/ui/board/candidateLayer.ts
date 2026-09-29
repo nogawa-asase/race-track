@@ -300,7 +300,11 @@ export function renderStartPointLayer(
       `candidate-color-${playerColor}`
     );
     if (isPreviewed) {
-      mark.classList.add('is-previewed');
+      // is-previewed は E2E テストがプレビュー判定に使うため残すが、
+      // レース中の候補プレビューと違い、スタート位置選びでは影
+      // (is-previewedのdrop-shadow)を付けない(is-start-previewで打ち消す)。
+      // 大きさの違いだけでプレビュー中と分かるようにする
+      mark.classList.add('is-previewed', 'is-start-preview');
     }
     mark.dataset.pointX = String(point.x);
     mark.dataset.pointY = String(point.y);
