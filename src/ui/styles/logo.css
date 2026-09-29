@@ -64,3 +64,16 @@
 .app-logo-blue {
   color: var(--color-blue);
 }
+
+/*
+ * 英語版(RACE TRACK)は文字数が多く、日本語版と同じ40pxでは枠に収まらない
+ * ため、枠を横に広げ(320→384px。1マス=16pxの倍数を保つ)、文字も
+ * 縮めている
+ */
+.app-logo-en {
+  width: 384px;
+}
+
+.app-logo-en .app-logo-text {
+  font-size: 36px;
+}
