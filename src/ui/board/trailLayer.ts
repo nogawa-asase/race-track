@@ -65,8 +65,8 @@ export function renderTrailLayer(
         el('circle', {
           cx: p.x,
           cy: p.y,
-          r: 0.12,
-          fill: color,
+          r: 0.24,
+          fill: 'var(--color-ink)',
           class: 'trail-point',
         })
       );
