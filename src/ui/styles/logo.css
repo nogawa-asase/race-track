@@ -45,8 +45,15 @@
 }
 
 .app-logo-text {
+  /*
+   * position:relative だけを付ける(z-indexは付けない)。道・方眼が
+   * position:absoluteなので、position指定のない要素のままだと、DOM順に
+   * 関係なく道・方眼の下に描画されてしまう(position指定さえあれば、
+   * z-index:autoの中でDOM順で最後のこの要素が一番上になる)。
+   * z-indexを明示すると、モーダルダイアログ(topレイヤー)より上に
+   * 突き抜けて表示されてしまう不具合があったため、position のみにする
+   */
   position: relative;
-  z-index: 1;
   font-family: var(--font-heading);
   font-weight: 700;
   letter-spacing: 0.05em;
