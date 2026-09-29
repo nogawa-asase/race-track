@@ -142,11 +142,20 @@ function goalDirection(course: Course): Vec {
   return normalize({ x: p1.x - p0.x, y: p1.y - p0.y });
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
 /**
  * スタート・ゴールラインの脇に文字を描く。ラインそのものの上(道の中)では
  * なく、道の外側(direction と逆向き)の芝の上に少しずらして置く。
  * 距離は道の半幅(halfWidth)を超える値にし、道の縁をまたいで芝の側まで
- * 出るようにする
+ * 出るようにする。
+ *
+ * スタート・ゴールが盤の端に近いコースだと、この距離だけずらすと文字が
+ * 盤(viewBox)の外にはみ出して欠けて見えることがあるため、文字の幅・高さを
+ * (フォントの実測値をもとにした概算で)見積もり、盤の内側に収まるよう
+ * 座標をクランプする
  */
 function renderLineLabel(
   text: string,
@@ -165,6 +174,14 @@ function renderLineLabel(
     x: mid.x + direction.x * distance,
     y: mid.y + direction.y * distance,
   };
+
+  const boardWidth = course.definition.boardSize.x - 1 + BOARD_MARGIN * 2;
+  const boardHeight = course.definition.boardSize.y - 1 + BOARD_MARGIN * 2;
+  const halfTextWidth = (text.length * fontSize * 0.65) / 2;
+  const halfTextHeight = fontSize * 0.8;
+  pos.x = clamp(pos.x, halfTextWidth, boardWidth - halfTextWidth);
+  pos.y = clamp(pos.y, halfTextHeight, boardHeight - halfTextHeight);
+
   const t = el('text', {
     x: pos.x,
     y: pos.y,
