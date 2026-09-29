@@ -5,6 +5,7 @@
  * 組み合わせ、設定画面から結果画面までの実際のゲームの流れを動かす。
  */
 import './ui/styles/theme.css';
+import './ui/styles/logo.css';
 import './ui/styles/board.css';
 import './ui/styles/panel.css';
 import './ui/styles/layout.css';
@@ -13,15 +14,14 @@ import './ui/styles/dialogs.css';
 import { GameController } from './app/GameController';
 import type { GameSettings } from './domain/types';
 import { DomGameView } from './ui/DomGameView';
+import { renderLogo } from './ui/Logo';
 
 const app = document.querySelector<HTMLDivElement>('#app');
 if (!app) {
   throw new Error('#app が見つかりません');
 }
 
-const title = document.createElement('h1');
-title.textContent = 'レーストラック';
-app.append(title);
+app.append(renderLogo());
 
 /** 機能設計書「設定画面」のデフォルト値 */
 const DEFAULT_SETTINGS: GameSettings = {

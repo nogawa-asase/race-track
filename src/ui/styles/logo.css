@@ -1,0 +1,66 @@
+/** アプリのロゴ(盤の道・芝・方眼を模した背景+「レーストラック」の文字) */
+
+.app-logo {
+  position: relative;
+  width: 320px;
+  height: 96px;
+  margin: 0 0 1rem;
+  border: 3px solid var(--color-ink);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 var(--color-ink);
+  box-sizing: border-box;
+  background: var(--color-logo-grass);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/*
+ * 上端(16px)・下端(16+64=80px)とも、方眼の1マス(16px)の倍数に
+ * ぴったり合わせる(そうしないと、道と芝の境目がグリッド線からずれて見える)
+ */
+.app-logo-road {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 16px;
+  height: 64px;
+  background: var(--color-logo-road);
+}
+
+/*
+ * グリッド(方眼)は、芝と道それぞれに別々の背景として描くと、継ぎ目で
+ * ずれて見える(道の帯の境界での端数・アンチエイリアシングの影響)。
+ * ロゴ全体に1枚だけ重ねることで、必ず揃うようにする
+ */
+.app-logo-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.45) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.45) 1px, transparent 1px);
+  background-size: 16px 16px;
+  pointer-events: none;
+}
+
+.app-logo-text {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  font-size: 40px;
+  white-space: nowrap;
+  /* 文字の影。複製した文字を重ねる方式だと h1 の実際の文章が二重に
+     なってしまうため、text-shadow で同じ見た目にする */
+  text-shadow: 3px 3px 0 rgba(32, 17, 39, 0.45);
+}
+
+.app-logo-red {
+  color: var(--color-red);
+}
+
+.app-logo-blue {
+  color: var(--color-blue);
+}
