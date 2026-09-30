@@ -54,6 +54,9 @@
     linear-gradient(rgba(32, 17, 39, 0.2) 1px, transparent 1px),
     linear-gradient(90deg, rgba(32, 17, 39, 0.2) 1px, transparent 1px);
   background-size: 50% 50%;
+  /* 右上の点の位置はそのままに、全体を8割の大きさに縮める */
+  transform: scale(0.8);
+  transform-origin: top right;
 }
 
 .start-position-pad {
@@ -80,17 +83,28 @@
   padding: 0;
 }
 
+/* 決定ボタンは、他のボタン(設定に戻る・ルール説明など)と同じトーンにする */
 .start-position-pad button {
-  min-width: 44px;
-  min-height: 44px;
-  aspect-ratio: 1;
+  min-width: 56px;
+  min-height: 56px;
+  padding: 0 0.5rem;
   font-size: 1rem;
-  border: 2px solid var(--color-ink);
-  border-radius: 0; /* 正方形の見た目を保つ */
-  background: #fffdf5;
+  border: 3px solid var(--color-ink);
+  border-radius: 12px;
+  background: #ffe27a;
   color: var(--color-ink);
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  box-shadow: 3px 3px 0 var(--color-ink);
   cursor: pointer;
+}
+
+.start-position-pad button:disabled {
+  cursor: default;
+  color: var(--color-disabled);
+  background: #eee;
+  border-color: var(--color-disabled);
+  box-shadow: none;
 }
 
 .direction-pad button:disabled {
