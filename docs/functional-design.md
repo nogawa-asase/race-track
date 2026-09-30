@@ -145,7 +145,7 @@ interface GameSettings {
   courseId: CourseId;          // デフォルト: 'hairpin'
   cpuLevel: CpuLevel;          // デフォルト: 'normal'。opponent が 'cpu' のときだけ使う
   turnOrder: TurnOrder;        // デフォルト: 'lottery'。opponent が 'cpu' のときだけ使う(人同士は赤鉛筆が先攻)
-  alert: boolean;              // P1: 行き止まりのアラート。デフォルト: true
+  alert: boolean;              // 行き止まりのアラート。デフォルト: true
 }
 
 type CpuLevel = 'weak' | 'normal' | 'strong'; // よわい / ふつう / つよい
@@ -209,12 +209,13 @@ interface Candidate {
   dangerous: boolean;      // P1: 選ぶとこの先どう指しても行き止まりになる(最短手数が「なし」)
 }
 
-/** 9候補は、加速 (ax, ay) の ay = -1, 0, 1 の順に、それぞれ ax = -1, 0, 1 の順で並べる(方向パッドの左上から右下への並びと同じ) */
+/** 9候補は、加速 (ax, ay) の ay = -1, 0, 1 の順に、それぞれ ax = -1, 0, 1 の順で並べる */
 type CandidateStatus =
   | 'ok'        // 選べる
   | 'goal'      // ゴールできる
   | 'offCourse' // 選べない(はみ出す)
-  | 'occupied'; // 選べない(相手がいる)
+  | 'occupied'  // 選べない(相手がいる)
+  | 'deadEnd';  // 選べない(行き止まりのアラートで断った。分類ではなくGameControllerが上書きする)
 ```
 
 ### エンティティ: GameResult(結果)
@@ -343,7 +344,7 @@ function chooseMove(candidates: Candidate[], velocity: Vec, table: DistanceTable
 **責務**:
 - 画面の状態(設定・くじ・スタート位置選び・レース・結果)を切り替える
 - 入力を行動に変換してドメイン層に渡し、返ってきた状態で画面を更新する
-- CPUの手番では「考え中」を表示してから `CpuPlayer` の手を適用する(表示時間は PRD の非機能要件)
+- CPUの手番では、一呼吸置いてから `CpuPlayer` の手を適用する(表示はしない。間の長さは PRD の非機能要件)
 - 移動アニメーションが終わってから次の手番に進める
 - 行き止まりや同着ルールのメッセージを出す
 - P1: 状態の履歴を持ち、「1手戻す」を実現する
@@ -351,7 +352,7 @@ function chooseMove(candidates: Candidate[], velocity: Vec, table: DistanceTable
 **インターフェース**:
 ```typescript
 class GameController {
-  constructor(view: GameView, random?: Random, thinkingMs?: number); // random(既定はMath.randomを使う本番実装)とthinkingMs(既定はPRDの表示時間)は、テストで差し替えられるように引数にする
+  constructor(view: GameView, random?: Random, thinkingMs?: number, deadEndPauseMs?: number); // random(既定はMath.randomを使う本番実装)、thinkingMs(既定はPRDの間の長さ)、deadEndPauseMs(既定は1000ms。行き止まり確定前に9候補を見せておく間)は、テストで差し替えられるように引数にする
   startGame(settings: GameSettings): Promise<void>; // コースの準備(表の読み込み)→ くじ → スタート位置選び。CPUの手番が続く限り、内部で自動的に進める
   onPointSelected(point: Vec): void;         // 盤の点がクリック・タップで確定された
   onPadSelected(accel: Vec): void;           // 加速(ax, ay)が確定された(現在UIからは呼ばれないが、GameControllerの機能としては残す)
@@ -373,7 +374,6 @@ class GameController {
 - 盤(SVG)の描画: 芝、方眼、コース、スタートライン、ゴールライン、軌跡、車、慣性点、9候補、プレビュー
 - 操作パネルの描画: 手番の表示、周回数、ボタン
 - 入力(盤への直接クリック・タップ)を受け取り、`GameController` に伝える
-- 画面幅に応じたレイアウトの切り替え
 
 **インターフェース**:
 ```typescript
@@ -601,7 +601,7 @@ sequenceDiagram
     Ctrl->>View: showThinking(true)
     Ctrl->>Cpu: chooseMove(state, 候補, 表, 強さ)
     Cpu-->>Ctrl: 加速
-    Note over Ctrl: 「考え中」を表示(PRDの非機能要件の時間)
+    Note over Ctrl: 一呼吸置く(表示はしない。PRDの非機能要件の時間)
     Ctrl->>View: showThinking(false)
     Ctrl->>Rules: applyAction(move)
     Rules-->>Ctrl: 新しい状態
@@ -616,8 +616,32 @@ sequenceDiagram
 2. プレイヤーが候補を選ぶ(盤への直接クリック・タップで1回で確定)
 3. 手を適用し、移動アニメーションを表示する
 4. 次の手番で行き止まりになる点に移動した場合は、メッセージを表示する
-5. CPUの手番では、「考え中」を表示してから手を適用する
+5. CPUの手番では、一呼吸置いてから(表示はしない)手を適用する
 6. 再び人の手番になり、9候補を表示する
+
+### 行き止まりのアラート(設定オン)で候補を断る
+
+```mermaid
+sequenceDiagram
+    participant User as プレイヤー
+    participant View as GameView
+    participant Ctrl as GameController
+    participant Rules
+
+    Ctrl->>View: renderBoard(state, 候補)
+    User->>View: 行き止まりになる候補をタップ
+    View->>Ctrl: onPointSelected(点)
+    Note over Ctrl: applyActionを試しに計算し、willBeDeadEndで確かめる(実際には移動しない)
+    Ctrl->>Rules: willBeDeadEnd(試した結果, 本人)
+    Rules-->>Ctrl: true
+    Ctrl->>View: renderBoard(state, 候補) その候補だけバツにする
+    Ctrl->>View: showMessage("次の手番では、どこにも進めません")
+    Note over User: 「行き止まりのアラート」設定がオフのときは、この節は起きず、通常どおり移動してから事後にメッセージが出る
+```
+
+- 設定の「行き止まりのアラート」がオンのときだけ働く(盤への直接タップ・クリックのみ。P1の方向パッド用 `onPadSelected` は対象外)
+- バツにした候補は、手番が変わるまで残る(選び直すまで選べないまま)
+- 判定は次の手番の9候補がすべてコースの外になるかどうかだけで、数手先までの探索はしない(相手の車も考えない)
 
 ### 行き止まりで負ける
 
@@ -636,6 +660,7 @@ sequenceDiagram
     Ctrl->>Rules: listCandidates(state)
     Rules-->>Ctrl: 9候補(すべて選べない)
     Ctrl->>View: renderBoard(state, 候補) 9候補の理由を表示
+    Note over Ctrl: 1秒待つ(矢印と9候補のバツを見せてから決着させる)
     Ctrl->>Rules: settleDeadEnd(state)
     Rules-->>Ctrl: 決着した状態(相手の勝ち)
     Ctrl->>View: showMessage("赤は、どこにも進めません。青の勝ちです")
@@ -677,21 +702,22 @@ stateDiagram-v2
 ### レース画面のレイアウト
 
 ```text
-PC(横幅が広い)                         スマホ(横幅が狭い)
-┌───────────────────┬──────────┐        ┌──────────────┐
-│                   │ 手番表示  │        │              │
-│                   │ 周回数    │        │     盤       │
-│       盤          │ ボタン    │        │              │
-│                   │           │        ├──────────────┤
-│                   │           │        │ 手番・周回    │
-│                   │           │        │ ボタン        │
-└───────────────────┴──────────┘        └──────────────┘
+PC・スマホ共通(以前はPCだけ盤とパネルを横並びにしていたが、
+スマホと同じ見た目に統一した)
+┌──────────────┐
+│              │
+│     盤       │
+│              │
+├──────────────┤
+│ 手番・周回    │
+│ ボタン        │
+└──────────────┘
 ```
 
-- 横並びと縦並びを切り替える画面幅の境目は `architecture.md` で定める
 - 幅360pxの画面で、盤全体が横スクロールなしで表示される
+- 画面幅が広いときは、この縦並びのカード全体を中央に置き、横幅を一定以上には広げない(盤だけが際限なく大きくなるのを防ぐ)
 - ボタン: 「設定に戻る」(確認あり)、「ルール説明」、「オートズーム」(スマホだけ表示。下記「盤のカメラ」参照)、P1で「1手戻す」
-- 「ルール説明」を開いている間は、入力を受け付けず、CPUの手番も進めない(`GameController` は、ルール説明が閉じられるまで「考え中」の待ちを止める)。閉じると続きから遊べる
+- 「ルール説明」を開いている間は、入力を受け付けず、CPUの手番も進めない(`GameController` は、ルール説明が閉じられるまでCPUの一呼吸の待ちを止める)。閉じると続きから遊べる
 
 ### 盤の表示
 
@@ -729,7 +755,7 @@ CSS transform(拡大縮小・平行移動)をかけることで、ズーム・�
 | ゴールできる | ★ 星 | 金色 | できる |
 | はみ出す | × バツ | 灰色 | できない |
 | 相手がいる | × バツ(はみ出すと同じ表示。理由が違うだけと分かりにくいため) | 灰色 | できない |
-| 危ない(P1) | ▲ 三角(中に「!」) | オレンジ | できる(確定前にアラート) |
+| 行き止まりのアラートで断った | × バツ(はみ出すと同じ表示) | 灰色 | できない(選び直すまで) |
 
 レース中(候補が9点表示されている間)は、盤の候補を直接クリック・
 タップして選ぶ(下記「盤のカメラ」でズームされるため、直接押しやすい
@@ -766,11 +792,10 @@ CSS transform(拡大縮小・平行移動)をかけることで、ズーム・�
 | CPUの手番 | 「CPU(青)が考え中…」 |
 | おまかせの結果(CPU戦) | 「あなたが先攻です」/「CPUが先攻です」 |
 | 人同士のレース開始 | 「赤が先攻です」 |
-| 行き止まりの予告 | 「次の手番では、どこにも進めません」 |
+| 行き止まりの予告 | 「次の手番では、どこにも進めません」(行き止まりのアラートがオンなら、その候補を選んだ時点で移動せずに表示。オフなら、移動した後に表示) |
 | 行き止まりで負け | 「赤は、どこにも進めません。青の勝ちです」(CPU戦なら「あなた(赤)は…CPU(青)の勝ちです」のように) |
 | 先攻がゴールし、後攻の手番が残っている | 「赤がゴール! 青がこの手でゴールすれば、同着ルールで青の勝ちです」 |
 | 設定に戻る確認 | 「レースをやめて、設定に戻りますか?」 |
-| 危ない手のアラート(P1) | 「この点に進むと、この先どう進んでも行き止まりになって負けになります。進みますか?」 |
 
 ### 結果画面
 
@@ -791,8 +816,7 @@ CSS transform(拡大縮小・平行移動)をかけることで、ズーム・�
 - 青鉛筆: 後攻の車・軌跡・選べる候補
 - 黄緑: 芝
 - 金: ゴールできる候補
-- 灰: 選べない候補
-- オレンジ: 危ない候補(P1)
+- 灰: 選べない候補(はみ出す・相手がいる・行き止まりのアラートで断った、のいずれも同じ)
 
 ### P1: 表示の切り替え
 
@@ -805,7 +829,8 @@ CSS transform(拡大縮小・平行移動)をかけることで、ズーム・�
 ### アニメーション
 
 - 車の移動: 元の点から行き先へなめらかに動かし、軌跡の線も合わせて伸ばす
-- CPUの「考え中」: 手を指す前に表示する
+- CPUの「考え中」: 手を指す前に一呼吸置く(表示はしない)
+- 行き止まりの確定: 矢印と9候補(すべてバツ)を見せてから、1秒置いて決着させる
 - 時間は PRD の非機能要件(パフォーマンス)に従う
 - 動きを減らす設定(prefers-reduced-motion)が有効なときは、移動アニメーションを省略して即座に表示する
 

@@ -135,7 +135,7 @@ function chooseMove(candidates: Candidate[]): Vec {
 ```typescript
 // ✅ 良い例
 export const MIN_SEGMENT_LENGTH = 1 / 16; // 線分の内外判定で、二分割をやめる長さ(目盛り)
-export const THINKING_MS = 500;          // CPUの「考え中」の表示時間(PRDの非機能要件)
+export const THINKING_MS = 500;          // CPUが指す前に置く一呼吸の長さ(PRDの非機能要件)
 export const MOVE_ANIMATION_MS = 260;    // 車の移動アニメーションの時間(PRDの非機能要件)
 
 // ❌ 悪い例
