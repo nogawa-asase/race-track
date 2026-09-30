@@ -37,7 +37,22 @@
   color: #6a5a78;
 }
 
-.direction-pad,
+/*
+ * レース中の3×3の方向パッド。盤の候補と同じデザインに合わせ、マス目の
+ * 中央ではなく交点(0%/50%/100%)に点を置く。方眼は盤の方眼と同じ考え方
+ * (background-imageの1px線を50%間隔で繰り返す)で描く
+ */
+.direction-pad {
+  position: relative;
+  width: 100%;
+  max-width: 200px;
+  aspect-ratio: 1;
+  background-image:
+    linear-gradient(rgba(32, 17, 39, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(32, 17, 39, 0.2) 1px, transparent 1px);
+  background-size: 50% 50%;
+}
+
 .start-position-pad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -45,7 +60,23 @@
   max-width: 220px;
 }
 
-.direction-pad button,
+.direction-pad button {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--color-ink);
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
 .start-position-pad button {
   min-width: 44px;
   min-height: 44px;
@@ -62,8 +93,6 @@
 .direction-pad button:disabled {
   cursor: default;
   color: var(--color-disabled);
-  background: #eee;
-  border-color: var(--color-disabled);
 }
 
 /*
@@ -89,17 +118,16 @@
 
 .direction-pad button.candidate-ok.color-red {
   color: var(--color-red);
-  border-color: var(--color-red);
 }
 .direction-pad button.candidate-ok.color-blue {
   color: var(--color-blue);
-  border-color: var(--color-blue);
 }
 .direction-pad button.candidate-goal {
-  color: var(--color-ink);
-  background: var(--color-goal-gold);
+  color: var(--color-goal-gold);
 }
-.direction-pad button.is-previewed,
+.direction-pad button.is-previewed {
+  transform: translate(-50%, -50%) scale(1.35);
+}
 .start-position-pad button.is-previewed {
   outline: 3px solid var(--color-ink);
 }

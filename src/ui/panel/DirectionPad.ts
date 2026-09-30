@@ -42,6 +42,10 @@ export class DirectionPad {
       button.type = 'button';
       button.dataset.accelX = String(accel.x);
       button.dataset.accelY = String(accel.y);
+      // マス目の中央ではなく交点に点を置く(盤の候補と同じデザインにする)。
+      // 3×3の交点は、accel(-1〜1)を0〜2のマス目座標に直した位置(0%/50%/100%)
+      button.style.left = `${(accel.x + 1) * 50}%`;
+      button.style.top = `${(accel.y + 1) * 50}%`;
       button.addEventListener('click', () => this.handleClick(accel));
       this.container.append(button);
       this.buttons.push(button);
