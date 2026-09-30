@@ -108,16 +108,23 @@ function renderArrowheadDefs(): SVGDefsElement {
   return defs;
 }
 
-/** 矢印(前回の慣性点への移動→今回の移動)のアニメーション時間 */
-const ARROW_SLIDE_MS = 300;
+/**
+ * 矢印のアニメーションの段階構成(3段階):
+ * 1. HOLD: 「Z→A」(前回の移動)の位置で静止し、しっかり見せる
+ * 2. SLIDE: 「A→B」(慣性点)の位置へスライドする
+ * 3. 候補の出現(中央→残り8点)
+ */
+const ARROW_HOLD_MS = 750;
+const ARROW_SLIDE_MS = 450;
 /** 矢印が着地してから、中央の候補(慣性点そのもの)が現れるまでの間 */
-const CENTER_REVEAL_DELAY_MS = ARROW_SLIDE_MS;
+const CENTER_REVEAL_DELAY_MS = ARROW_HOLD_MS + ARROW_SLIDE_MS;
 /** 中央の候補の後、残り8候補が現れるまでの間 */
-const OTHERS_REVEAL_DELAY_MS = ARROW_SLIDE_MS + 150;
+const OTHERS_REVEAL_DELAY_MS = CENTER_REVEAL_DELAY_MS + 150;
 
 /**
  * 一つ前の点をZ、現在位置をA、今の勢いのまま進んだ場合の点(慣性点)をB
- * とすると、矢印は「Z→A」の位置から「A→B」の位置へスライドする
+ * とすると、矢印はまず「Z→A」(前回の移動)の位置でHOLD_MSの間静止し、
+ * そのあと「A→B」の位置へSLIDE_MSかけてスライドする
  * (Bは A+velocity で、Z→AもA→Bも同じ velocity ぶんの矢印になるため、
  * 平行移動させるだけで正しい向き・長さのまま A→B に重なる)。
  *
@@ -127,7 +134,8 @@ const OTHERS_REVEAL_DELAY_MS = ARROW_SLIDE_MS + 150;
  * プロパティではないため Web Animations では実質動かせず、
  * 見た目上アニメーションしない(だけ再生中と報告される)ことがある。
  * `transform` は CSS プロパティとして確実にアニメーションできるため、
- * こちらを使う
+ * こちらを使う。`delay` + `fill: 'both'` で、開始前(HOLD中)は最初の
+ * キーフレーム(Z→Aの位置)のまま静止させる
  *
  * `animate` が true で、かつ一つ前の点(Z)がある(=速度が0でない)ときだけ
  * スライドさせる。それ以外(最初の1手)は A→B の位置に、動きなしで置く
@@ -154,16 +162,20 @@ function renderInertiaArrow(
         { transform: `translate(${dx}px, ${dy}px)` },
         { transform: 'translate(0px, 0px)' },
       ],
-      { duration: ARROW_SLIDE_MS, easing: 'ease-out', fill: 'forwards' }
+      {
+        duration: ARROW_SLIDE_MS,
+        delay: ARROW_HOLD_MS,
+        easing: 'ease-out',
+        fill: 'both',
+      }
     );
   }
   return line;
 }
 
 /**
- * 現在位置から慣性点への矢印だけを描く、専用の層。軌跡・車の層より
- * 手前(下)に置いて、赤・青の現在位置の点(車)の下に矢印が来るようにする
- * (機能設計書の「軌跡・車」表示を、矢印が隠さないようにするため)。
+ * 現在位置から慣性点への矢印だけを描く、専用の層。軌跡・車・候補の
+ * すべての層より手前(最前面)に置く。
  * 手番が変わるたびに呼ぶ(プレビュー変更では呼ばない。矢印はプレビュー
  * に関係しないため)
  */

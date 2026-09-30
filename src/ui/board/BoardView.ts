@@ -39,16 +39,16 @@ export class BoardView {
     this.svg = document.createElementNS(SVG_NS, 'svg');
     this.svg.setAttribute('class', 'board');
     this.staticLayer = document.createElementNS(SVG_NS, 'g');
-    // 慣性点への矢印は、赤・青の現在位置の点(車)より下に来るよう、
-    // 軌跡・車の層(trailLayer)より手前に置く
-    this.arrowLayer = document.createElementNS(SVG_NS, 'g');
     this.trailLayer = document.createElementNS(SVG_NS, 'g');
     this.candidateLayer = document.createElementNS(SVG_NS, 'g');
+    // 慣性点への矢印は、軌跡・車(trailLayer)・候補(candidateLayer)の
+    // すべてより手前(最前面)に来るよう、一番最後に置く
+    this.arrowLayer = document.createElementNS(SVG_NS, 'g');
     this.svg.append(
       this.staticLayer,
-      this.arrowLayer,
       this.trailLayer,
-      this.candidateLayer
+      this.candidateLayer,
+      this.arrowLayer
     );
     container.append(this.svg);
 

@@ -59,15 +59,18 @@
   stroke-linecap: round;
 }
 
-/* 慣性点への矢印(現在位置から)。手番が変わるたびに、すっと描かれる */
+/*
+ * 慣性点への矢印(現在位置から)。手番が変わるたびに、すっと描かれる。
+ * 道の灰色(--color-road)と見分けがつく明るいグレーにする
+ */
 .inertia-arrow {
   fill: none;
-  stroke: var(--color-ink);
+  stroke: var(--color-inertia-arrow);
   stroke-width: 0.06;
 }
 
 .inertia-arrowhead {
-  fill: var(--color-ink);
+  fill: var(--color-inertia-arrow);
 }
 
 /* プレビューの線分 */
