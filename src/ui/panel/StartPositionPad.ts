@@ -22,6 +22,7 @@ export class StartPositionPad {
 
     this.prevButton = document.createElement('button');
     this.prevButton.type = 'button';
+    this.prevButton.className = 'arrow-button';
     this.prevButton.textContent = '←';
     this.prevButton.addEventListener('click', () => this.move(-1));
 
@@ -32,6 +33,7 @@ export class StartPositionPad {
 
     this.nextButton = document.createElement('button');
     this.nextButton.type = 'button';
+    this.nextButton.className = 'arrow-button';
     this.nextButton.textContent = '→';
     this.nextButton.addEventListener('click', () => this.move(1));
 

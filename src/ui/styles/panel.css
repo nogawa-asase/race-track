@@ -33,6 +33,7 @@
 }
 
 .round-indicator {
+  margin: 0;
   color: #6a5a78;
 }
 
@@ -63,6 +64,27 @@
   color: var(--color-disabled);
   background: #eee;
   border-color: var(--color-disabled);
+}
+
+/*
+ * スタート位置選びの←→(↑↓)は、四角い枠のボタンではなく、矢印そのものを
+ * 大きく表示してそれ自体を押せるようにする(決定ボタンは従来どおり)
+ */
+.start-position-pad button.arrow-button {
+  min-width: 56px;
+  min-height: 56px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 2.75rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.start-position-pad button.arrow-button:disabled {
+  cursor: default;
+  color: var(--color-disabled);
 }
 
 .direction-pad button.candidate-ok.color-red {
