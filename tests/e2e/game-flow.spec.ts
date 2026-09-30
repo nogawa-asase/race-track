@@ -366,30 +366,19 @@ test.describe('スタート位置選び(機能設計書「入力の操作」の�
     await expect(page.locator('.turn-indicator')).not.toHaveText(before ?? '');
   });
 
-  test('タッチは1回目でプレビュー、同じ点への2回目で確定する', async ({
-    page,
-  }) => {
-    // Given
+  test('タッチも1回のタップで確定する', async ({ page }) => {
+    // Given: タッチの2段階確定は、同じ点への素早い2回タップがブラウザの
+    // ダブルタップズームと衝突するため廃止し、マウスと同じ1回確定にした
     await startGame(page, 'human');
     await dismissMessageIfAny(page);
     await expect(page.locator('.race-screen')).toBeVisible();
     const point = page.locator('.board [data-point-x]').first();
+    const before = await page.locator('.turn-indicator').textContent();
 
-    // When: 1回目のタップ(touch)
+    // When: 1回のタップ(touch)
     await point.dispatchEvent('pointerup', { pointerType: 'touch' });
 
-    // Then: まだ確定していないが、プレビューは表示されている
-    await expect(page.locator('.board .is-previewed')).toHaveCount(1);
-    const turnDuringPreview = await page
-      .locator('.turn-indicator')
-      .textContent();
-
-    // When: 同じ点への2回目のタップ
-    await point.dispatchEvent('pointerup', { pointerType: 'touch' });
-
-    // Then: 確定して手番が変わる
-    await expect(page.locator('.turn-indicator')).not.toHaveText(
-      turnDuringPreview ?? ''
-    );
+    // Then: プレビューを介さず、即座に確定して手番が変わる
+    await expect(page.locator('.turn-indicator')).not.toHaveText(before ?? '');
   });
 });

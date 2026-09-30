@@ -21,11 +21,16 @@ function findPointElement(target: EventTarget | null): HTMLElement | null {
 }
 
 /**
- * 盤への入力(クリック・タップ)を監視し、マウスは1回、タッチは2回
- * (同じ点への2回目)で確定する(機能設計書「入力の操作」)。
+ * 盤への入力(クリック・タップ)を監視し、ポインタの種類によらず1回で
+ * 確定する(機能設計書「入力の操作」)。
  * レース中は9候補(`getCandidates`)、スタート位置選び中は置ける点
  * (`getStartPoints`)のどちらかが盤に描かれており、どちらも同じ
  * `data-point-x`/`data-point-y` 属性でクリックされた点を特定する
+ *
+ * (以前はタッチだけ2回タップで確定にしていたが、同じ点への素早い
+ * 2回タップがブラウザのダブルタップズームと衝突し、ピンチズームで
+ * 拡大した表示が意図せず戻ってしまうことがあったため、マウスと同じ
+ * 1回確定に統一した)
  *
  * @returns 後片付け(removeEventListener)をする関数
  */
@@ -35,13 +40,6 @@ export function attachBoardInput(
   getStartPoints: () => readonly Vec[],
   handlers: BoardInputHandlers
 ): () => void {
-  let previewed: Vec | null = null;
-
-  function setPreview(target: Vec | null): void {
-    previewed = target;
-    handlers.onPreviewChange(target);
-  }
-
   /** クリックされた点が今選べるか(候補なら ok・goal、スタート位置なら常に選べる) */
   function isPointSelectable(point: Vec): boolean {
     const candidates = getCandidates();
@@ -64,19 +62,8 @@ export function attachBoardInput(
     if (!isPointSelectable(point)) {
       return;
     }
-
-    if (event.pointerType === 'touch') {
-      if (previewed && equals(previewed, point)) {
-        setPreview(null);
-        handlers.onSelect(point);
-      } else {
-        setPreview(point);
-      }
-    } else {
-      // マウス・ペンは1回で確定
-      setPreview(null);
-      handlers.onSelect(point);
-    }
+    handlers.onPreviewChange(null);
+    handlers.onSelect(point);
   }
 
   svg.addEventListener('pointerup', onPointerUp);
