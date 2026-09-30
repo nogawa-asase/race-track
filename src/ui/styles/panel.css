@@ -48,15 +48,22 @@
 .direction-pad {
   position: relative;
   width: 100%;
-  max-width: 160px;
+  max-width: 128px; /* 元の160pxの8割 */
   aspect-ratio: 1;
+  /* カードの中央に来るようにする */
+  margin: 0 auto;
+  /*
+   * 方眼は 0%/50% の位置に1pxの線を描く background-image で表す。ただし
+   * 100%(右端・下端)の位置は、背景タイルがちょうど枠の外に来てしまい
+   * 線が描かれないため、border-right/bottom で右端・下端の線を別途足す
+   */
   background-image:
     linear-gradient(rgba(32, 17, 39, 0.2) 1px, transparent 1px),
     linear-gradient(90deg, rgba(32, 17, 39, 0.2) 1px, transparent 1px);
   background-size: 50% 50%;
-  /* 右上の点の位置はそのままに、全体を8割の大きさに縮める */
-  transform: scale(0.8);
-  transform-origin: top right;
+  border-right: 1px solid rgba(32, 17, 39, 0.2);
+  border-bottom: 1px solid rgba(32, 17, 39, 0.2);
+  box-sizing: border-box;
 }
 
 .start-position-pad {
