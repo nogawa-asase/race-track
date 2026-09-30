@@ -15,7 +15,7 @@
   --color-dangerous: #ff8c3a; /* 危ない候補(P1) */
   --color-ink: #201127; /* 太い縁取り・文字の色 */
   --color-card: #fff6df; /* カード(パネル・ダイアログ)の背景 */
-  --color-page: #2a1b3d; /* ページ全体の背景 */
+  --color-page: #4a3468; /* ページ全体の背景(濃すぎるとink色の影が見えづらいため、少し明るくしてある) */
   --color-logo-grass: #b9e6a0; /* ロゴの背景(芝・道と同じ配色を薄くしたもの) */
   --color-logo-road: #9694ac;
   --color-inertia-arrow: #d8d5c4; /* 慣性点への矢印(道の灰色 #4a4767 と見分けがつく明るいグレー) */
