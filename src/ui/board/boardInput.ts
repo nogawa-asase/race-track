@@ -32,13 +32,17 @@ function findPointElement(target: EventTarget | null): HTMLElement | null {
  * 拡大した表示が意図せず戻ってしまうことがあったため、マウスと同じ
  * 1回確定に統一した)
  *
+ * @param wasMultiTouch - 盤専用のピンチズーム(pinchZoom.ts)から渡す。
+ *   直前まで指2本以上のジェスチャーだった場合は true になり、指を離す
+ *   pointerup をタップでの確定と誤認しないようにする
  * @returns 後片付け(removeEventListener)をする関数
  */
 export function attachBoardInput(
   svg: SVGSVGElement,
   getCandidates: () => readonly Candidate[],
   getStartPoints: () => readonly Vec[],
-  handlers: BoardInputHandlers
+  handlers: BoardInputHandlers,
+  wasMultiTouch: () => boolean = () => false
 ): () => void {
   /** クリックされた点が今選べるか(候補なら ok・goal、スタート位置なら常に選べる) */
   function isPointSelectable(point: Vec): boolean {
@@ -51,6 +55,9 @@ export function attachBoardInput(
   }
 
   function onPointerUp(event: PointerEvent): void {
+    if (wasMultiTouch()) {
+      return;
+    }
     const el = findPointElement(event.target);
     if (!el) {
       return;

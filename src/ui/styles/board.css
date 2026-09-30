@@ -6,11 +6,11 @@
   max-width: 100%;
   box-sizing: border-box;
   /*
-   * タップの2段階確定を、スクロールなどのブラウザのジェスチャーには
-   * 邪魔されないようにしつつ、ピンチズームだけは許可する
-   * (スマホで盤を拡大できるようにするため)
+   * ピンチズーム・パンは盤専用の自前の処理(pinchZoom.ts)で行い、
+   * レース中の自動追従(オートズーム)と連携させる。ブラウザ標準の
+   * ジェスチャー(スクロール・ピンチズームなど)は全て抑える
    */
-  touch-action: pinch-zoom;
+  touch-action: none;
   border: 3px solid var(--color-ink);
   border-radius: 16px;
   box-shadow: 6px 6px 0 var(--color-ink);

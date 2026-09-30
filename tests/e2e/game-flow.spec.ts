@@ -226,6 +226,44 @@ test.describe('ゲームの流れ(機能設計書「画面遷移」)', () => {
   });
 });
 
+test.describe('盤のカメラ(オートズーム)', () => {
+  function boardCameraScale(page: Page): Promise<number | null> {
+    return page.evaluate(() => {
+      const g = document.querySelector('.board-camera');
+      if (!g) return null;
+      const transform = getComputedStyle(g).transform;
+      const m = transform.match(/matrix\(([^)]+)\)/);
+      return m ? Number(m[1].split(',')[0]) : null;
+    });
+  }
+
+  test('レースが始まると、全体表示のあと自動でズームして手番の車に寄る', async ({
+    page,
+  }) => {
+    await startGame(page, 'cpu');
+    await dismissMessageIfAny(page);
+    await expect(page.locator('.race-screen')).toBeVisible();
+
+    // Given: スタート位置選び中は全体表示(scale=1)のまま
+    expect(await boardCameraScale(page)).toBe(1);
+
+    // When: 両者がスタート位置を決め、レースが始まる
+    await page.locator('.start-position-pad button:has-text("決定")').click();
+
+    // Then: しばらくすると(全体表示を保ってから)ズームして寄る。
+    // 手番がCPU・人どちらでも、レースが始まった時点で自動的にズームする
+    await expect
+      .poll(() => boardCameraScale(page), { timeout: 5000 })
+      .toBeGreaterThan(1);
+
+    // When: 「オートズーム」ボタンを押しても、今の追従表示のまま(エラーにならない)
+    await page.click('.panel-buttons button:has-text("オートズーム")');
+    await expect
+      .poll(() => boardCameraScale(page), { timeout: 2000 })
+      .toBeGreaterThan(1);
+  });
+});
+
 test.describe('ルール説明(PRD「6-2. ルール説明」)', () => {
   test.setTimeout(90_000);
 

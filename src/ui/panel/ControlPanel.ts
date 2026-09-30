@@ -9,6 +9,7 @@ export interface ControlPanelCallbacks {
   onStartPreviewChange(point: Vec | null): void;
   onBackToSettings(): void;
   onShowRules(): void;
+  onAutoZoom(): void;
 }
 
 /**
@@ -64,7 +65,11 @@ export class ControlPanel {
     rulesButton.type = 'button';
     rulesButton.textContent = 'ルール説明';
     rulesButton.addEventListener('click', callbacks.onShowRules);
-    buttons.append(backButton, rulesButton);
+    const autoZoomButton = document.createElement('button');
+    autoZoomButton.type = 'button';
+    autoZoomButton.textContent = 'オートズーム';
+    autoZoomButton.addEventListener('click', callbacks.onAutoZoom);
+    buttons.append(backButton, rulesButton, autoZoomButton);
 
     card.append(this.turnEl, this.roundEl, this.thinkingEl, this.padContainer);
     this.container.append(card, buttons);

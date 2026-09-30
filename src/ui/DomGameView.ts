@@ -65,6 +65,7 @@ export class DomGameView implements GameView {
       onStartPreviewChange: (point) => this.board.setPreview(point),
       onBackToSettings: callbacks.onBackToSettings,
       onShowRules: () => this.openRules(callbacks),
+      onAutoZoom: () => this.board.resetToAutoFollow(),
     });
     this.resultScreen = new ResultScreen(this.raceScreen, {
       onRetry: callbacks.onRetry,
