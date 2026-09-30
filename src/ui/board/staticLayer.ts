@@ -1,4 +1,5 @@
 import type { Course } from '../../domain/course/types';
+import type { PathElement } from '../../domain/course/types';
 import type { Point, Vec } from '../../domain/types';
 import { BOARD_MARGIN, pathToSvgD, toDisplay } from './constants';
 
@@ -58,9 +59,66 @@ function renderGrid(boardSize: Vec): SVGGElement {
   return g;
 }
 
+/**
+ * 表示だけのために、パスの最初・最後(スタート手前・ゴール先)を伸ばす。
+ * 実際のコース判定(domain)には影響しない、見た目だけの延長
+ */
+function extendPathForDisplay(
+  path: readonly PathElement[],
+  startExtension: number,
+  endExtension: number
+): PathElement[] {
+  if (path.length === 0) return [];
+  const result = path.map((e) => ({ ...e }));
+  const first = result[0];
+  if (first.kind === 'line') {
+    const dir = normalize({
+      x: first.to.x - first.from.x,
+      y: first.to.y - first.from.y,
+    });
+    result[0] = {
+      ...first,
+      from: {
+        x: first.from.x - dir.x * startExtension,
+        y: first.from.y - dir.y * startExtension,
+      },
+    };
+  }
+  const last = result[result.length - 1];
+  if (last.kind === 'line') {
+    const dir = normalize({
+      x: last.to.x - last.from.x,
+      y: last.to.y - last.from.y,
+    });
+    result[result.length - 1] = {
+      ...last,
+      to: {
+        x: last.to.x + dir.x * endExtension,
+        y: last.to.y + dir.y * endExtension,
+      },
+    };
+  }
+  return result;
+}
+
+function extendCoursePathForDisplay(course: Course): PathElement[] {
+  const startExt = roadExtension(
+    course,
+    { x: -startDirection(course).x, y: -startDirection(course).y },
+    START_LABEL.length
+  );
+  const endExt = roadExtension(
+    course,
+    goalDirection(course),
+    GOAL_LABEL.length
+  );
+  return extendPathForDisplay(course.path, startExt, endExt);
+}
+
 function renderRoad(course: Course): SVGPathElement {
+  const path = extendCoursePathForDisplay(course);
   return el('path', {
-    d: pathToSvgD(course.path),
+    d: pathToSvgD(path),
     fill: 'none',
     stroke: 'var(--color-road)',
     'stroke-width': course.definition.halfWidth * 2,
@@ -111,7 +169,7 @@ function renderGridOnRoad(course: Course): SVGGElement {
       fill: '#000',
     }),
     el('path', {
-      d: pathToSvgD(course.path),
+      d: pathToSvgD(extendCoursePathForDisplay(course)),
       fill: 'none',
       stroke: '#fff',
       'stroke-width': course.definition.halfWidth * 2,
@@ -146,11 +204,67 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+const START_LABEL = 'START';
+const GOAL_LABEL = 'GOAL';
+
+/** START・GOALの文字の大きさ(コースの太さに応じて決める) */
+function labelFontSize(course: Course): number {
+  return Math.max(0.7, Math.min(1.4, course.definition.halfWidth * 0.6));
+}
+
+/** ラインと文字の間の空き(方眼半マス分) */
+const LABEL_GAP = 0.5;
+
+/**
+ * ライン→文字の向き(direction)に文字がどれだけはみ出すか(中心から
+ * 半分)。direction が横向き(進行方向が左右)なら文字の横幅、縦向きなら
+ * 文字の高さが効いてくる
+ */
+function labelHalfExtentAlong(
+  course: Course,
+  direction: Vec,
+  textLength: number
+): number {
+  const fontSize = labelFontSize(course);
+  const halfTextWidth = (textLength * fontSize * 0.65) / 2;
+  const halfTextHeight = fontSize * 0.8;
+  return Math.abs(direction.x) >= Math.abs(direction.y)
+    ? halfTextWidth
+    : halfTextHeight;
+}
+
+/**
+ * ラインから文字までの距離(中心まで)。ラインと文字の間が方眼半マス分
+ * (0.5)くらい空くようにする
+ */
+function labelDistance(
+  course: Course,
+  direction: Vec,
+  textLength: number
+): number {
+  return LABEL_GAP + labelHalfExtentAlong(course, direction, textLength);
+}
+
+/**
+ * スタート手前・ゴール先に見た目だけ道を伸ばす長さ。文字がその延長部分に
+ * 収まるよう、ライン→文字の距離に、文字が反対側にもはみ出す分の余裕を足す
+ */
+function roadExtension(
+  course: Course,
+  direction: Vec,
+  textLength: number
+): number {
+  return (
+    labelDistance(course, direction, textLength) +
+    labelHalfExtentAlong(course, direction, textLength) +
+    0.3
+  );
+}
+
 /**
  * スタート・ゴールラインの脇に文字を描く。ラインそのものの上(道の中)では
- * なく、道の外側(direction と逆向き)の芝の上に少しずらして置く。
- * 距離は道の半幅(halfWidth)を超える値にし、道の縁をまたいで芝の側まで
- * 出るようにする。
+ * なく、道の外側(direction と逆向き)に、方眼半マス分ほど離して置く
+ * (延長した道の上に乗る)。
  *
  * スタート・ゴールが盤の端に近いコースだと、この距離だけずらすと文字が
  * 盤(viewBox)の外にはみ出して欠けて見えることがあるため、文字の幅・高さを
@@ -165,11 +279,8 @@ function renderLineLabel(
   course: Course
 ): SVGTextElement {
   const mid = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
-  const fontSize = Math.max(
-    0.7,
-    Math.min(1.4, course.definition.halfWidth * 0.6)
-  );
-  const distance = course.definition.halfWidth + fontSize * 0.6;
+  const fontSize = labelFontSize(course);
+  const distance = labelDistance(course, direction, text.length);
   const pos = {
     x: mid.x + direction.x * distance,
     y: mid.y + direction.y * distance,
@@ -209,7 +320,7 @@ function renderStartLine(course: Course): SVGGElement {
       'stroke-width': 0.3,
     }),
     renderLineLabel(
-      'START',
+      START_LABEL,
       from,
       to,
       { x: -startDirection(course).x, y: -startDirection(course).y },
@@ -266,7 +377,7 @@ function renderGoalLine(course: Course): SVGGElement {
   }
   g.append(
     renderLineLabel(
-      'GOAL',
+      GOAL_LABEL,
       from,
       to,
       { x: goalDirection(course).x, y: goalDirection(course).y },
