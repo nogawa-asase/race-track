@@ -20,6 +20,21 @@ function isSelectable(candidate: Candidate): boolean {
   return candidate.status === 'ok' || candidate.status === 'goal';
 }
 
+/**
+ * 記号(見た目)よりひとまわり大きい、タップ判定だけのための透明な円。
+ * マス目の間隔(1)の半分弱の半径にし、隣の点の判定と重ならないようにする
+ */
+const HIT_AREA_RADIUS = 0.45;
+
+function renderHitArea(point: Vec): SVGCircleElement {
+  return el('circle', {
+    cx: point.x,
+    cy: point.y,
+    r: HIT_AREA_RADIUS,
+    class: 'board-candidate-hit',
+  });
+}
+
 /** 候補の記号を作る(機能設計書「候補の表示」) */
 function renderMark(candidate: Candidate, big: boolean): SVGElement {
   const p = toDisplay(candidate.target);
@@ -256,6 +271,14 @@ export function renderCandidateLayer(
     }
     mark.dataset.pointX = String(candidate.target.x);
     mark.dataset.pointY = String(candidate.target.y);
+
+    // タップ判定は記号そのものより広くする(記号の見た目は変えない)
+    if (isSelectable(candidate)) {
+      const hit = renderHitArea(toDisplay(candidate.target));
+      hit.dataset.pointX = String(candidate.target.x);
+      hit.dataset.pointY = String(candidate.target.y);
+      children.push(hit);
+    }
     children.push(mark);
 
     if (animateReveal && hasPrevPoint) {
@@ -304,7 +327,12 @@ export function renderStartPointLayer(
     }
     mark.dataset.pointX = String(point.x);
     mark.dataset.pointY = String(point.y);
-    children.push(mark);
+
+    // タップ判定は記号そのものより広くする(記号の見た目は変えない)
+    const hit = renderHitArea(p);
+    hit.dataset.pointX = String(point.x);
+    hit.dataset.pointY = String(point.y);
+    children.push(hit, mark);
   }
   parent.replaceChildren(...children);
 }

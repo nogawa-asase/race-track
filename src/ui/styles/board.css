@@ -17,13 +17,31 @@
   overflow: hidden; /* border-radius で盤の角(芝の四角)も丸く切り取る */
 }
 
+/*
+ * 記号(マーク)自体はクリックを受けない(見た目だけ)。当たり判定は必ず
+ * 同じ点にある .board-candidate-hit(記号より広い透明な円)だけが受ける。
+ * 記号にもクリックを許すと、記号とhit areaの2つが同じ場所で重なり、
+ * どちらが受け取るか環境によってぶれる(実際、Playwrightのクリックの
+ * 安全確認が「別要素に遮られている」と判定して失敗する事例があった)
+ */
 .board-candidate {
   cursor: pointer;
+  pointer-events: none;
 }
 
 .board-candidate.is-disabled {
   cursor: default;
-  pointer-events: none;
+}
+
+/*
+ * タップ判定だけの透明な円(記号そのものは小さいままにして、押しやすさだけ
+ * 広げる)。fill:transparent だけだと環境によって当たり判定が付かないため、
+ * pointer-events を明示する
+ */
+.board-candidate-hit {
+  fill: transparent;
+  pointer-events: all;
+  cursor: pointer;
 }
 
 .board-grid-line {
@@ -66,16 +84,20 @@
 
 /*
  * 慣性点への矢印(現在位置から)。手番が変わるたびに、すっと描かれる。
- * 道の灰色(--color-road)と見分けがつく明るいグレーにする
+ * 道の灰色(--color-road)と見分けがつく明るいグレーにする。
+ * 矢印は最前面の層にあるため、pointer-events を切っておかないと、矢印の
+ * 下にある候補(特に慣性点そのものの中央の候補)がタップできなくなる
  */
 .inertia-arrow {
   fill: none;
   stroke: var(--color-inertia-arrow);
   stroke-width: 0.06;
+  pointer-events: none;
 }
 
 .inertia-arrowhead {
   fill: var(--color-inertia-arrow);
+  pointer-events: none;
 }
 
 /* プレビューの線分 */
