@@ -3,6 +3,8 @@ import {
   clampCameraRect,
   followCameraRect,
   fullCameraRect,
+  isWithinDeadzone,
+  FOLLOW_DEADZONE,
   FOLLOW_VIEW_SIZE,
 } from '../../../../src/ui/board/camera';
 
@@ -52,5 +54,20 @@ describe('camera', () => {
     const rect = { cx: 18, cy: 18, size: 18 };
     const transform = cameraTransform(world, rect);
     expect(transform).toBe('matrix(2, 0, 0, 2, -18, -18)');
+  });
+
+  it('isWithinDeadzone: 目標がカメラの中心にごく近ければ true', () => {
+    const rect = { cx: 18, cy: 18, size: FOLLOW_VIEW_SIZE };
+    expect(isWithinDeadzone(rect, { x: 18, y: 18 })).toBe(true);
+    expect(
+      isWithinDeadzone(rect, { x: 18 + FOLLOW_DEADZONE - 0.1, y: 18 })
+    ).toBe(true);
+  });
+
+  it('isWithinDeadzone: 目標がカメラの中心から離れていれば false', () => {
+    const rect = { cx: 18, cy: 18, size: FOLLOW_VIEW_SIZE };
+    expect(
+      isWithinDeadzone(rect, { x: 18 + FOLLOW_DEADZONE + 0.1, y: 18 })
+    ).toBe(false);
   });
 });

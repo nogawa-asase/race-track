@@ -1,5 +1,6 @@
 import { turnMessage } from '../../app/messages';
 import type { GameState } from '../../domain/types';
+import { isMobileLayout } from '../layout';
 
 export interface ControlPanelCallbacks {
   onBackToSettings(): void;
@@ -17,6 +18,7 @@ export class ControlPanel {
   private readonly turnEl: HTMLElement;
   private readonly roundEl: HTMLElement;
   private readonly thinkingEl: HTMLElement;
+  private readonly autoZoomButton: HTMLButtonElement;
 
   constructor(container: HTMLElement, callbacks: ControlPanelCallbacks) {
     this.container = document.createElement('div');
@@ -41,11 +43,11 @@ export class ControlPanel {
     rulesButton.type = 'button';
     rulesButton.textContent = 'ルール説明';
     rulesButton.addEventListener('click', callbacks.onShowRules);
-    const autoZoomButton = document.createElement('button');
-    autoZoomButton.type = 'button';
-    autoZoomButton.textContent = 'オートズーム';
-    autoZoomButton.addEventListener('click', callbacks.onAutoZoom);
-    buttons.append(backButton, rulesButton, autoZoomButton);
+    this.autoZoomButton = document.createElement('button');
+    this.autoZoomButton.type = 'button';
+    this.autoZoomButton.textContent = 'オートズーム';
+    this.autoZoomButton.addEventListener('click', callbacks.onAutoZoom);
+    buttons.append(backButton, rulesButton, this.autoZoomButton);
 
     this.container.append(this.turnEl, this.roundEl, this.thinkingEl, buttons);
     container.append(this.container);
@@ -60,6 +62,9 @@ export class ControlPanel {
     // スタート位置選び中は周回がまだ始まっていない(常に0)ため、意味の
     // ない表示になる。レース中だけ見せる
     this.roundEl.hidden = state.phase !== 'racing';
+    // オートズームはスマホ専用の機能のため、PC(横並びレイアウト)では
+    // ボタンごと表示しない
+    this.autoZoomButton.hidden = !isMobileLayout();
   }
 
   /** CPUの「考え中」の表示を切り替える */

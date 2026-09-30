@@ -5,6 +5,7 @@ import {
   clampCameraRect,
   followCameraRect,
   fullCameraRect,
+  isWithinDeadzone,
 } from './camera';
 import type { CameraRect, WorldBounds } from './camera';
 import { attachBoardInput } from './boardInput';
@@ -17,6 +18,7 @@ import { BOARD_MARGIN, MOVE_ANIMATION_MS, toDisplay } from './constants';
 import { attachPinchZoom } from './pinchZoom';
 import { renderStaticLayer } from './staticLayer';
 import { renderTrailLayer } from './trailLayer';
+import { isMobileLayout } from '../layout';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -29,18 +31,6 @@ function prefersReducedMotion(): boolean {
   return (
     typeof window !== 'undefined' &&
     window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-  );
-}
-
-/**
- * スマホ(縦並びレイアウト)かどうか。layout.css の横並びレイアウトの
- * 境目(幅768px以上・横向き)と同じ条件で判定する
- */
-function isMobileLayout(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    !window.matchMedia?.('(min-width: 768px) and (orientation: landscape)')
-      .matches
   );
 }
 
@@ -168,10 +158,14 @@ export class BoardView {
   private updateCameraForState(state: GameState): void {
     if (this.isFreshRaceStart(state)) {
       // 新しいレースの始まり(「同じ設定でもう一度」でのやり直しも含む)。
+      // 同じコースを選び直した場合は setCourse が呼ばれず(コースが変わって
+      // いないため)、前のレース終盤でズームしていた場所のままカメラが
+      // 残ってしまうので、ここで必ず全体表示に戻す。
       // 前のレースでピンチして 'manual' のままになっていても、新しい
       // レースでは device に応じた既定の状態からやり直す
-      // (オートズームの既定オンは、スマホのときだけにする。PCでは
-      // 「オートズーム」ボタンを押したときだけ自動追従を始める)
+      // (オートズームはスマホのときだけの機能。PCでは「オートズーム」
+      // ボタンごと表示しないため、常にオフのままにする)
+      this.setCameraRect(fullCameraRect(this.world), true);
       this.cameraMode = isMobileLayout() ? 'auto' : 'manual';
       this.hasZoomedIn = false;
       if (this.raceIntroTimer) {
@@ -190,7 +184,9 @@ export class BoardView {
       return;
     }
     if (this.cameraMode !== 'auto' || !this.hasZoomedIn) return;
-    this.followCurrentTarget(state, true);
+    // 手番が変わるたびの追従は、目標がすでに画面の中心付近にいるなら
+    // 動かさない(細かい動きを減らし、目が疲れないようにする)
+    this.followCurrentTarget(state, true, true);
   }
 
   /** まだ誰もスタート位置を置いていない(=このレースの最初の手番)か */
@@ -201,21 +197,27 @@ export class BoardView {
   /**
    * 追従先(スタート位置選び中はスタートライン中央、レース中は今の
    * 手番の車)にカメラを合わせる
+   *
+   * @param respectDeadzone - true なら、目標がカメラの中心にごく近い
+   *   ときは動かさない(手番が変わるたびの細かい追従だけに使う。
+   *   「まず全体表示」からの最初の寄りや「オートズーム」ボタンでは
+   *   使わず、必ず寄せる)
    */
-  private followCurrentTarget(state: GameState, animate: boolean): void {
+  private followCurrentTarget(
+    state: GameState,
+    animate: boolean,
+    respectDeadzone = false
+  ): void {
+    let target: Point | null = null;
     if (state.phase === 'racing') {
-      const player = state.players[state.turn];
-      if (!player.position) return;
-      this.setCameraRect(
-        followCameraRect(this.world, toDisplay(player.position)),
-        animate
-      );
+      const position = state.players[state.turn].position;
+      if (position) target = toDisplay(position);
     } else if (state.phase === 'placing') {
-      this.setCameraRect(
-        followCameraRect(this.world, this.startLineCenter),
-        animate
-      );
+      target = this.startLineCenter;
     }
+    if (!target) return;
+    if (respectDeadzone && isWithinDeadzone(this.cameraRect, target)) return;
+    this.setCameraRect(followCameraRect(this.world, target), animate);
   }
 
   /**

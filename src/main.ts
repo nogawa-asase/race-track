@@ -38,6 +38,25 @@ document.addEventListener(
   true
 );
 
+/*
+ * 上のダイアログの close 対策とは別に、スマホの一部ブラウザは、
+ * タップ(touch)によるフォーカスも :focus-visible と判定することが
+ * あり、その場合は theme.css の `button:focus:not(:focus-visible)`
+ * による打ち消しが効かず、タップしたボタンにフォーカスの枠が残って
+ * 見える。ポインタ操作(マウス・タッチ)でボタンを押した直後に明示的に
+ * フォーカスを外すことで、この判定のブレに関係なく枠を残さないように
+ * する(キーボード操作でのクリックは pointerup を伴わないため、
+ * キーボード操作でのフォーカス表示には影響しない)
+ */
+document.addEventListener(
+  'pointerup',
+  (event) => {
+    if (!(event.target instanceof Element)) return;
+    event.target.closest('button')?.blur();
+  },
+  true
+);
+
 app.append(renderLogo());
 
 /** 機能設計書「設定画面」のデフォルト値 */

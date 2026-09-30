@@ -48,5 +48,11 @@ test.describe('レイアウトの切り替え', () => {
       () => document.documentElement.scrollWidth
     );
     expect(scrollWidth).toBeLessThanOrEqual(360);
+
+    // オートズームはスマホ専用の機能のため、ボタンが表示される
+    // (PC側の非表示は game-flow.spec.ts の「盤のカメラ」で確認する)
+    await expect(
+      page.locator('.panel-buttons button:has-text("オートズーム")')
+    ).toBeVisible();
   });
 });

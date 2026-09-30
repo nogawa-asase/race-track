@@ -19,6 +19,19 @@ export const FOLLOW_VIEW_SIZE = 17;
 /** ピンチで拡大できる限界(フルビューに対する比率) */
 const MAX_ZOOM_RATIO = 0.3;
 
+/**
+ * 追従中、目標がカメラの中心からこの距離より近ければ動かさない
+ * (手番が変わるたびに毎回細かく追従し直すと、視線が疲れるため)
+ */
+export const FOLLOW_DEADZONE = 2.5;
+
+/** 目標がカメラの中心から半径 FOLLOW_DEADZONE より内側にいるか */
+export function isWithinDeadzone(current: CameraRect, target: Point): boolean {
+  const dx = target.x - current.cx;
+  const dy = target.y - current.cy;
+  return Math.hypot(dx, dy) < FOLLOW_DEADZONE;
+}
+
 function clampNumber(value: number, min: number, max: number): number {
   if (min > max) return (min + max) / 2;
   return Math.min(Math.max(value, min), max);

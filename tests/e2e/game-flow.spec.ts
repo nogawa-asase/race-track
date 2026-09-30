@@ -259,7 +259,7 @@ test.describe('盤のカメラ(オートズーム)', () => {
     });
   }
 
-  test('PC(横並びレイアウト)では、レースが始まっても自動ではズームしない', async ({
+  test('PC(横並びレイアウト)では、オートズームのボタンがなく、自動ではズームしない', async ({
     page,
   }) => {
     await startGame(page, 'cpu');
@@ -268,20 +268,21 @@ test.describe('盤のカメラ(オートズーム)', () => {
 
     // Given: スタート位置選び中は全体表示(scale=1)のまま
     expect(await boardCameraScale(page)).toBe(1);
+    // オートズームはスマホ専用の機能のため、PC(このテストはDesktopの幅)
+    // ではボタンごと表示しない
+    await expect(
+      page.locator('.panel-buttons button:has-text("オートズーム")')
+    ).toBeHidden();
 
     // When: 両者がスタート位置を決め、レースが始まる
     await placeAllStartPositions(page);
 
-    // Then: PC(このテストはDesktopの幅)では、オートズームの既定はオフ
-    // なので、しばらく待っても全体表示のまま
+    // Then: PCではオートズームがないので、しばらく待っても全体表示のまま
     await page.waitForTimeout(2000);
     expect(await boardCameraScale(page)).toBe(1);
-
-    // When: 「オートズーム」ボタンを押すと、手番の車に寄る
-    await page.click('.panel-buttons button:has-text("オートズーム")');
-    await expect
-      .poll(() => boardCameraScale(page), { timeout: 2000 })
-      .toBeGreaterThan(1);
+    await expect(
+      page.locator('.panel-buttons button:has-text("オートズーム")')
+    ).toBeHidden();
   });
 });
 
