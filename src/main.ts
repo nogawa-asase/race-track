@@ -21,6 +21,23 @@ if (!app) {
   throw new Error('#app が見つかりません');
 }
 
+/*
+ * ダイアログ(確認・メッセージ・ルール説明)を閉じると、開く前に押した
+ * ボタンへフォーカスが自動的に戻る。この「自動で戻ったフォーカス」は、
+ * ブラウザによっては :focus-visible の判定が一定せず、クリックした
+ * だけなのに次にそのボタンを見たときフォーカスの枠が残って見えることが
+ * あったため、ダイアログが閉じたら明示的にフォーカスを外す。
+ * dialog の close イベントはバブリングしないため、document でも
+ * 捕捉フェーズ(true)で拾う
+ */
+document.addEventListener(
+  'close',
+  () => {
+    (document.activeElement as HTMLElement | null)?.blur();
+  },
+  true
+);
+
 app.append(renderLogo());
 
 /** 機能設計書「設定画面」のデフォルト値 */

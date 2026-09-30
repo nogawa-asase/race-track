@@ -46,16 +46,16 @@ async function dismissMessageIfAny(
  * 1回の `page.evaluate` で行う(Playwrightの個々のlocator呼び出しを積み重ねると、
  * 4ワーカー同時実行時に往復のレイテンシが積み上がりタイムアウトの原因になる)。
  *
- * スタート位置選びは常に中央(決定ボタンの既定のプレビュー)を選び、レース中は
- * 一番加速する候補を選ぶ(design.mdの方針どおり、行き止まりに素早く到達させて
- * 決着を早める)
+ * スタート位置選び・レース中の候補選びは、どちらも盤上の点への直接タップ
+ * (`.board-candidate-hit`)で確定する(方向パッド・決定ボタンは廃止済み)。
+ * どちらも「行き先の座標(x+y)が一番大きいもの」を選ぶことで、常に同じ向きに
+ * 手を進め、決着を早める(design.mdの方針どおり、行き止まりに素早く到達させる)
  */
 async function step(page: Page): Promise<{
-  action: 'dialog' | 'start' | 'move' | 'cpu' | 'result' | 'none';
+  action: 'dialog' | 'move' | 'cpu' | 'result' | 'none';
   signature: string;
 }> {
   return page.evaluate(() => {
-    const isVisible = (el: HTMLElement) => el.offsetParent !== null;
     const turnText =
       document.querySelector('.turn-indicator')?.textContent ?? '';
     const roundText =
@@ -81,28 +81,20 @@ async function step(page: Page): Promise<{
     }
 
     if (turnText.includes('CPU')) {
-      // ControlPanel は、候補・スタート地点のボタンをUI上「選べる」状態で
-      // 描画するかどうかを手番の持ち主(人かCPUか)では区別しない(CPUの手番でも
-      // ボタン自体は有効に見える)。実際にクリックしてもGameController側で
-      // 無視されるだけだが、クリックの最中にCPUの本当の手が適用されて
-      // 再描画されるとボタンの位置がずれる恐れがあるため、手番表示の文言
+      // 盤は、候補・スタート地点をUI上「選べる」状態で描画するかどうかを
+      // 手番の持ち主(人かCPUか)では区別しない(CPUの手番でも点自体は
+      // タップできる見た目になる)。実際にタップしてもGameController側で
+      // 無視されるだけだが、タップの最中にCPUの本当の手が適用されて
+      // 再描画されると点の位置がずれる恐れがあるため、手番表示の文言
       // (「CPU(色)が考え中…」)でCPUの手番と判定し、先に弾いておく
       return { action: 'cpu' as const, signature };
     }
 
-    const startButton = Array.from(
-      document.querySelectorAll<HTMLButtonElement>('.start-position-pad button')
-    ).find((b) => b.textContent === '決定' && !b.disabled && isVisible(b));
-    if (startButton) {
-      startButton.click();
-      return { action: 'start' as const, signature };
-    }
-
-    // レース中の候補パッドは廃止(盤がズームされ直接タップできるため)。
-    // 選べる候補の当たり判定(.board-candidate-hit)は isSelectable のもの
-    // にしか描かれないので、これがあれば即座にタップできる。「一番
-    // 加速する」候補を選ぶ方針は、行き先の座標(x+y)が一番大きいものを
-    // 選ぶことで代用する(velocityを問わず、常に同じ向きに偏らせられる)
+    // スタート位置選び・レース中のどちらも、選べる点には当たり判定
+    // (.board-candidate-hit)が描かれているので、これがあれば即座にタップ
+    // できる。「一番加速する」候補を選ぶ方針は、行き先の座標(x+y)が
+    // 一番大きいものを選ぶことで代用する(velocityを問わず、常に同じ
+    // 向きに偏らせられる)
     const boardCandidates = Array.from(
       document.querySelectorAll<SVGCircleElement>('.board .board-candidate-hit')
     );
@@ -131,11 +123,11 @@ async function step(page: Page): Promise<{
 }
 
 /**
- * 手を確定する操作(スタート位置の決定・方向パッドの2回目のクリック)の後、
- * 画面が実際に更新される(手番・周回の表示が変わる、メッセージ・結果画面が
- * 出る)まで待つ。1手の適用後、次の描画までに移動アニメーション(260ms)を
- * 挟むため、これを待たずに次の操作を判断すると、まだ更新されていない
- * (直前の手番のままの)候補を読んで、同じ手をもう一度確定させてしまう
+ * 手を確定する操作(盤上の点への直接タップ)の後、画面が実際に更新される
+ * (手番・周回の表示が変わる、メッセージ・結果画面が出る)まで待つ。1手の
+ * 適用後、次の描画までに移動アニメーション(260ms)を挟むため、これを
+ * 待たずに次の操作を判断すると、まだ更新されていない(直前の手番のままの)
+ * 候補を読んで、同じ手をもう一度確定させてしまう
  */
 async function waitForStateChange(
   page: Page,
@@ -166,7 +158,7 @@ async function playUntilFinished(page: Page, maxSteps = 300): Promise<void> {
   for (let i = 0; i < maxSteps; i++) {
     const { action, signature } = await step(page);
     if (action === 'result') return;
-    if (action === 'start' || action === 'move') {
+    if (action === 'move') {
       await waitForStateChange(page, signature);
     } else if (action === 'cpu' || action === 'none') {
       await page.waitForTimeout(100);
@@ -181,13 +173,35 @@ async function waitForCpuThinking(page: Page, maxSteps = 60): Promise<void> {
     const visible = await page.locator('.thinking-indicator').isVisible();
     if (visible) return;
     const { action, signature } = await step(page);
-    if (action === 'start' || action === 'move') {
+    if (action === 'move') {
       await waitForStateChange(page, signature);
     } else if (action === 'cpu' || action === 'none') {
       await page.waitForTimeout(100);
     }
   }
   throw new Error('CPUの「考え中」が始まらないまま、ステップ上限に達しました');
+}
+
+/**
+ * 両者のスタート位置が決まり、レース(racing)に入るまで進める。
+ * ControlPanel は phase が racing になるまで周回表示(.round-indicator)を
+ * 隠すため、これが見えた時点で判定する(その手前でループを止めるので、
+ * レース中の1手を余計に指してしまうことはない)
+ */
+async function placeAllStartPositions(
+  page: Page,
+  maxSteps = 20
+): Promise<void> {
+  for (let i = 0; i < maxSteps; i++) {
+    if (await page.locator('.round-indicator').isVisible()) return;
+    const { action, signature } = await step(page);
+    if (action === 'move') {
+      await waitForStateChange(page, signature);
+    } else {
+      await page.waitForTimeout(100);
+    }
+  }
+  throw new Error('スタート位置が決まらないまま、ステップ上限に達しました');
 }
 
 test.describe('ゲームの流れ(機能設計書「画面遷移」)', () => {
@@ -256,7 +270,7 @@ test.describe('盤のカメラ(オートズーム)', () => {
     expect(await boardCameraScale(page)).toBe(1);
 
     // When: 両者がスタート位置を決め、レースが始まる
-    await page.locator('.start-position-pad button:has-text("決定")').click();
+    await placeAllStartPositions(page);
 
     // Then: PC(このテストはDesktopの幅)では、オートズームの既定はオフ
     // なので、しばらく待っても全体表示のまま

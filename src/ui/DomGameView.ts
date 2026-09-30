@@ -59,8 +59,6 @@ export class DomGameView implements GameView {
 
     this.board = new BoardView(this.raceScreen, callbacks.onPointSelected);
     this.panel = new ControlPanel(this.raceScreen, {
-      onStartPointSelect: callbacks.onPointSelected,
-      onStartPreviewChange: (point) => this.board.setPreview(point),
       onBackToSettings: callbacks.onBackToSettings,
       onShowRules: () => this.openRules(callbacks),
       onAutoZoom: () => this.board.resetToAutoFollow(),
@@ -102,7 +100,7 @@ export class DomGameView implements GameView {
     }
     const candidatesOrPoints = candidates ?? listStartPoints(state, course);
     this.board.render(state, candidatesOrPoints);
-    this.panel.render(state, this.opponent, candidatesOrPoints);
+    this.panel.render(state, this.opponent);
   }
 
   animateMove(player: number, from: Vec, to: Vec): Promise<void> {

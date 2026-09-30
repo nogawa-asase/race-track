@@ -1,13 +1,6 @@
 import type { Candidate, Vec } from '../../domain/types';
 import { equals } from '../../domain/vec';
 
-export interface BoardInputHandlers {
-  /** 候補・スタート位置が確定された */
-  onSelect(target: Vec): void;
-  /** プレビューが変わった(候補の再描画に使う。null はプレビューなし) */
-  onPreviewChange(target: Vec | null): void;
-}
-
 function isSelectable(candidate: Candidate): boolean {
   return candidate.status === 'ok' || candidate.status === 'goal';
 }
@@ -41,7 +34,7 @@ export function attachBoardInput(
   svg: SVGSVGElement,
   getCandidates: () => readonly Candidate[],
   getStartPoints: () => readonly Vec[],
-  handlers: BoardInputHandlers,
+  onSelect: (target: Vec) => void,
   wasMultiTouch: () => boolean = () => false
 ): () => void {
   /** クリックされた点が今選べるか(候補なら ok・goal、スタート位置なら常に選べる) */
@@ -69,8 +62,7 @@ export function attachBoardInput(
     if (!isPointSelectable(point)) {
       return;
     }
-    handlers.onPreviewChange(null);
-    handlers.onSelect(point);
+    onSelect(point);
   }
 
   svg.addEventListener('pointerup', onPointerUp);

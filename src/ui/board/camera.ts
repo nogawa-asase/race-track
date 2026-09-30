@@ -14,7 +14,7 @@ export interface WorldBounds {
 }
 
 /** 追従時に表示するワールド座標の一辺。小さいほど寄って見える */
-export const FOLLOW_VIEW_SIZE = 20;
+export const FOLLOW_VIEW_SIZE = 17;
 
 /** ピンチで拡大できる限界(フルビューに対する比率) */
 const MAX_ZOOM_RATIO = 0.3;

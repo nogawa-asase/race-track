@@ -1,5 +1,5 @@
 import type { Course } from '../../domain/course/types';
-import type { Candidate, GameState, Vec } from '../../domain/types';
+import type { Candidate, GameState, Point, Vec } from '../../domain/types';
 import {
   cameraTransform,
   clampCameraRect,
@@ -22,8 +22,8 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /** カメラが追従・全体表示へ切り替わるときのアニメーション時間 */
 const CAMERA_ANIMATION_MS = 500;
-/** レース開始時、全体表示を保ってから追従ズームへ移るまでの時間 */
-const RACE_INTRO_HOLD_MS = 1000;
+/** コースが表示されてから、全体表示を保つ時間(この後、追従ズームへ移る) */
+const RACE_INTRO_HOLD_MS = 3000;
 
 function prefersReducedMotion(): boolean {
   return (
@@ -60,16 +60,17 @@ export class BoardView {
   private latestCandidates: readonly Candidate[] = [];
   private latestStartPoints: readonly Vec[] = [];
   private latestState: GameState | null = null;
-  private preview: Vec | null = null;
 
   /** 盤全体の表示座標の大きさ(コースを選ぶまでは未確定なのでダミー値) */
   private world: WorldBounds = { width: 1, height: 1 };
+  /** スタート位置選び中に追従する先(コースを選ぶまでは未確定なのでダミー値) */
+  private startLineCenter: Point = { x: 0, y: 0 };
   private cameraRect: CameraRect = { cx: 0.5, cy: 0.5, size: 1 };
   private cameraAnimation: Animation | null = null;
-  /** 'auto' なら手番ごとに自動で追従する。ピンチ操作をすると 'manual' になる */
+  /** 'auto' なら自動で追従する。ピンチ操作をすると 'manual' になる */
   private cameraMode: 'auto' | 'manual' = 'auto';
-  /** レース開始時の「まず全体表示」を、そのレースで1回だけ行うためのフラグ */
-  private hasStartedRaceCamera = false;
+  /** 「まず全体表示」の3秒が経ち、追従ズームを始めたか(レースごとにリセットする) */
+  private hasZoomedIn = false;
   private raceIntroTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(container: HTMLElement, onSelect: (target: Vec) => void) {
@@ -107,13 +108,7 @@ export class BoardView {
       this.svg,
       () => this.latestCandidates,
       () => this.latestStartPoints,
-      {
-        onSelect,
-        onPreviewChange: (target) => {
-          this.preview = target;
-          this.redrawCandidates();
-        },
-      },
+      onSelect,
       pinchZoom.wasMultiTouch
     );
   }
@@ -125,12 +120,15 @@ export class BoardView {
       width: boardSize.x - 1 + BOARD_MARGIN * 2,
       height: boardSize.y - 1 + BOARD_MARGIN * 2,
     };
+    this.startLineCenter = toDisplay({
+      x: (course.startLine.from.x + course.startLine.to.x) / 2,
+      y: (course.startLine.from.y + course.startLine.to.y) / 2,
+    });
     this.svg.setAttribute(
       'viewBox',
       `0 0 ${this.world.width} ${this.world.height}`
     );
     renderStaticLayer(this.staticLayer, course);
-    this.preview = null;
     this.setCameraRect(fullCameraRect(this.world), false);
   }
 
@@ -146,7 +144,6 @@ export class BoardView {
   ): void {
     const justMovedColor = this.detectJustMovedColor(state);
     this.latestState = state;
-    this.preview = null;
     if (state.phase === 'racing') {
       this.latestCandidates = candidatesOrPoints as readonly Candidate[];
       this.latestStartPoints = [];
@@ -161,11 +158,12 @@ export class BoardView {
   }
 
   /**
-   * カメラ(ズーム・追従)の制御。レース開始時(スタート位置選びから
-   * レースへ切り替わった最初の手番)は、全体表示を1秒ほど保ってから
-   * 追従ズームへ移る。以降は手番が変わるたびに、自動追従('auto')なら
-   * 今の手番の車を中心にズームし直す。ピンチ操作で 'manual' になって
-   * いる間は、ユーザーの表示を邪魔しないよう何もしない
+   * カメラ(ズーム・追従)の制御。コースが表示されてから3秒は全体表示を
+   * 保ち、そのあと追従ズームへアニメーションで移る(自動追従('auto')の
+   * ときだけ)。以降は手番が変わるたびに、今の的(スタート位置選び中は
+   * スタートライン中央、レース中は今の手番の車)を中心にズームし直す。
+   * ピンチ操作で 'manual' になっている間は、ユーザーの表示を邪魔しない
+   * よう何もしない
    */
   private updateCameraForState(state: GameState): void {
     if (this.isFreshRaceStart(state)) {
@@ -175,35 +173,24 @@ export class BoardView {
       // (オートズームの既定オンは、スマホのときだけにする。PCでは
       // 「オートズーム」ボタンを押したときだけ自動追従を始める)
       this.cameraMode = isMobileLayout() ? 'auto' : 'manual';
-    }
-    if (state.phase === 'placing') {
-      // スタート位置選び中はまだ車がないので、全体表示のままにする
-      this.hasStartedRaceCamera = false;
+      this.hasZoomedIn = false;
       if (this.raceIntroTimer) {
         clearTimeout(this.raceIntroTimer);
         this.raceIntroTimer = null;
       }
       if (this.cameraMode === 'auto') {
-        this.setCameraRect(fullCameraRect(this.world), true);
+        this.raceIntroTimer = setTimeout(() => {
+          this.raceIntroTimer = null;
+          this.hasZoomedIn = true;
+          if (this.cameraMode === 'auto' && this.latestState) {
+            this.followCurrentTarget(this.latestState, true);
+          }
+        }, RACE_INTRO_HOLD_MS);
       }
       return;
     }
-    if (state.phase !== 'racing') return;
-
-    if (!this.hasStartedRaceCamera) {
-      this.hasStartedRaceCamera = true;
-      // 今は全体表示のまま、少し待ってから追従ズームへ移る
-      this.raceIntroTimer = setTimeout(() => {
-        this.raceIntroTimer = null;
-        if (this.cameraMode === 'auto' && this.latestState) {
-          this.followCurrentPlayer(this.latestState, true);
-        }
-      }, RACE_INTRO_HOLD_MS);
-      return;
-    }
-    if (this.cameraMode === 'auto') {
-      this.followCurrentPlayer(state, true);
-    }
+    if (this.cameraMode !== 'auto' || !this.hasZoomedIn) return;
+    this.followCurrentTarget(state, true);
   }
 
   /** まだ誰もスタート位置を置いていない(=このレースの最初の手番)か */
@@ -211,24 +198,39 @@ export class BoardView {
     return state.phase === 'placing' && state.players.every((p) => !p.position);
   }
 
-  private followCurrentPlayer(state: GameState, animate: boolean): void {
-    const player = state.players[state.turn];
-    if (!player.position) return;
-    const rect = followCameraRect(this.world, toDisplay(player.position));
-    this.setCameraRect(rect, animate);
+  /**
+   * 追従先(スタート位置選び中はスタートライン中央、レース中は今の
+   * 手番の車)にカメラを合わせる
+   */
+  private followCurrentTarget(state: GameState, animate: boolean): void {
+    if (state.phase === 'racing') {
+      const player = state.players[state.turn];
+      if (!player.position) return;
+      this.setCameraRect(
+        followCameraRect(this.world, toDisplay(player.position)),
+        animate
+      );
+    } else if (state.phase === 'placing') {
+      this.setCameraRect(
+        followCameraRect(this.world, this.startLineCenter),
+        animate
+      );
+    }
   }
 
   /**
-   * 「オートズーム」ボタンから呼ぶ。自動追従に戻し、今の状態に応じた
-   * カメラへアニメーションする(レース中なら今の手番の車、それ以外は全体表示)
+   * 「オートズーム」ボタンから呼ぶ。自動追従に戻し、今の的へアニメーション
+   * する(「まず全体表示」の3秒を待たず、すぐに寄る)
    */
   resetToAutoFollow(): void {
     this.cameraMode = 'auto';
-    if (!this.latestState) return;
-    if (this.latestState.phase === 'racing') {
-      this.followCurrentPlayer(this.latestState, true);
-    } else {
-      this.setCameraRect(fullCameraRect(this.world), true);
+    this.hasZoomedIn = true;
+    if (this.raceIntroTimer) {
+      clearTimeout(this.raceIntroTimer);
+      this.raceIntroTimer = null;
+    }
+    if (this.latestState) {
+      this.followCurrentTarget(this.latestState, true);
     }
   }
 
@@ -279,7 +281,6 @@ export class BoardView {
         this.candidateLayer,
         this.latestState,
         this.latestCandidates.length > 0 ? this.latestCandidates : null,
-        this.preview,
         animate
       );
       return;
@@ -288,19 +289,8 @@ export class BoardView {
     renderStartPointLayer(
       this.candidateLayer,
       this.latestStartPoints,
-      this.preview,
       player.color
     );
-  }
-
-  /**
-   * スタート位置選びのパッド(←→/↑↓)でプレビューが変わったときに呼ぶ。
-   * 盤上のマウス・タッチのプレビューと同じ仕組みで、車の点を候補の位置に
-   * 表示する
-   */
-  setPreview(point: Vec | null): void {
-    this.preview = point;
-    this.redrawCandidates();
   }
 
   /** 移動アニメーション。完了で解決する Promise を返す */

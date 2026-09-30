@@ -1,5 +1,5 @@
 import type { Candidate, GameState, PenColor, Vec } from '../../domain/types';
-import { add, equals } from '../../domain/vec';
+import { add } from '../../domain/vec';
 import { toDisplay } from './constants';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -37,9 +37,9 @@ function renderHitArea(point: Vec): SVGCircleElement {
 }
 
 /** 候補の記号を作る(機能設計書「候補の表示」) */
-function renderMark(candidate: Candidate, big: boolean): SVGElement {
+function renderMark(candidate: Candidate): SVGElement {
   const p = toDisplay(candidate.target);
-  const size = big ? 0.32 : 0.24;
+  const size = 0.24;
 
   switch (candidate.status) {
     case 'ok':
@@ -216,20 +216,17 @@ function revealCandidateMark(mark: SVGElement, isCenter: boolean): void {
 }
 
 /**
- * 9候補・プレビューを描く。手番の切り替えのたびに呼ぶ。
+ * 9候補を描く。手番の切り替えのたびに呼ぶ。
  * candidates が null(スタート位置選び中)なら、候補の層は空にする
  * (慣性点への矢印は、別の層に `renderInertiaArrowLayer` で描く)
  *
- * @param preview - プレビュー中の候補の行き先(なければ null)
  * @param animateReveal - 中央→残り8候補の順にフェードインさせるか。
- *   新しい手番の描画のときだけ true にする(プレビュー変更だけの再描画で
- *   毎回フェードし直されると煩わしいため)
+ *   新しい手番の描画のときだけ true にする
  */
 export function renderCandidateLayer(
   parent: SVGGElement,
   state: GameState,
   candidates: readonly Candidate[] | null,
-  preview: Vec | null,
   animateReveal: boolean
 ): void {
   if (!candidates) {
@@ -241,24 +238,8 @@ export function renderCandidateLayer(
   const hasPrevPoint = trail.length >= 2;
   const children: SVGElement[] = [];
 
-  // プレビュー中の線分(慣性点や現在位置ではなく、実際の移動元から)
-  if (preview) {
-    const from = toDisplay(player.position!);
-    const to = toDisplay(preview);
-    children.push(
-      el('line', {
-        x1: from.x,
-        y1: from.y,
-        x2: to.x,
-        y2: to.y,
-        class: `preview-line preview-${player.color}`,
-      })
-    );
-  }
-
   for (const candidate of candidates) {
-    const isPreviewed = preview ? equals(preview, candidate.target) : false;
-    const mark = renderMark(candidate, isPreviewed);
+    const mark = renderMark(candidate);
     mark.classList.add(
       'board-candidate',
       `candidate-${candidate.status}`,
@@ -266,9 +247,6 @@ export function renderCandidateLayer(
     );
     if (!isSelectable(candidate)) {
       mark.classList.add('is-disabled');
-    }
-    if (isPreviewed) {
-      mark.classList.add('is-previewed');
     }
     mark.dataset.pointX = String(candidate.target.x);
     mark.dataset.pointY = String(candidate.target.y);
@@ -295,23 +273,19 @@ export function renderCandidateLayer(
  * スタート位置選び中、置ける点に「選べる」候補と同じ見た目(●・手番の車の色)
  * で丸を描く(機能設計書「入力の操作」の「スタート位置」の行に対応する、
  * 盤への直接クリック・タップのための土台)
- *
- * @param preview - プレビュー中の点(なければ null)
  */
 export function renderStartPointLayer(
   parent: SVGGElement,
   points: readonly Vec[],
-  preview: Vec | null,
   playerColor: PenColor
 ): void {
   const children: SVGElement[] = [];
   for (const point of points) {
-    const isPreviewed = preview ? equals(preview, point) : false;
     const p = toDisplay(point);
     const mark = el('circle', {
       cx: p.x,
       cy: p.y,
-      r: isPreviewed ? 0.32 : 0.24,
+      r: 0.24,
       class: 'mark-ok',
     });
     mark.classList.add(
@@ -319,13 +293,6 @@ export function renderStartPointLayer(
       'candidate-ok',
       `candidate-color-${playerColor}`
     );
-    if (isPreviewed) {
-      // is-previewed は E2E テストがプレビュー判定に使うため残すが、
-      // レース中の候補プレビューと違い、スタート位置選びでは影
-      // (is-previewedのdrop-shadow)を付けない(is-start-previewで打ち消す)。
-      // 大きさの違いだけでプレビュー中と分かるようにする
-      mark.classList.add('is-previewed', 'is-start-preview');
-    }
     mark.dataset.pointX = String(point.x);
     mark.dataset.pointY = String(point.y);
 

@@ -100,14 +100,6 @@
   pointer-events: none;
 }
 
-/* プレビューの線分 */
-.preview-line {
-  stroke: var(--color-ink);
-  stroke-width: 0.07;
-  stroke-dasharray: 0.16 0.12;
-  fill: none;
-}
-
 /* 候補の記号(機能設計書「候補の表示」) */
 .candidate-color-red.candidate-ok {
   color: var(--color-red);
@@ -131,11 +123,4 @@
 .mark-occupied line {
   stroke: var(--color-disabled);
   stroke-width: 0.06;
-}
-.is-previewed {
-  filter: drop-shadow(0 0 0.06px #000) drop-shadow(0 0 0.06px #000);
-}
-/* スタート位置選びのプレビューには影を付けない(大きさの違いだけで示す) */
-.is-start-preview {
-  filter: none;
 }

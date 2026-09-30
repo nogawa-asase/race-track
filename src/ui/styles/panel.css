@@ -1,4 +1,4 @@
-/** 操作パネル(ControlPanel・StartPositionPad)の見た目 */
+/** 操作パネル(ControlPanel)の見た目 */
 
 .control-panel {
   display: flex;
@@ -25,63 +25,6 @@
      本文と同じ色(明るい色)を少し薄めて使う(暗い色だと読めなくなる) */
   color: var(--color-card);
   opacity: 0.7;
-}
-
-.start-position-pad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.25rem;
-  max-width: 220px;
-}
-
-/* 決定ボタンは、他のボタン(設定に戻る・ルール説明など)と同じトーンにする */
-.start-position-pad button {
-  min-width: 56px;
-  min-height: 56px;
-  padding: 0 0.5rem;
-  font-size: 1rem;
-  border: 3px solid var(--color-ink);
-  border-radius: 12px;
-  background: #ffe27a;
-  color: var(--color-ink);
-  font-family: var(--font-heading);
-  font-weight: 600;
-  box-shadow: 3px 3px 0 var(--color-ink);
-  cursor: pointer;
-}
-
-.start-position-pad button:disabled {
-  cursor: default;
-  color: var(--color-disabled);
-  background: #eee;
-  border-color: var(--color-disabled);
-  box-shadow: none;
-}
-
-/*
- * スタート位置選びの←→(↑↓)は、四角い枠のボタンではなく、矢印そのものを
- * 大きく表示してそれ自体を押せるようにする(決定ボタンは従来どおり)
- */
-.start-position-pad button.arrow-button {
-  min-width: 56px;
-  min-height: 56px;
-  border: none;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  font-size: 2.75rem;
-  line-height: 1;
-  padding: 0;
-  color: var(--color-card);
-}
-
-.start-position-pad button.arrow-button:disabled {
-  cursor: default;
-  color: var(--color-disabled);
-}
-
-.start-position-pad button.is-previewed {
-  outline: 3px solid var(--color-ink);
 }
 
 .panel-buttons {
