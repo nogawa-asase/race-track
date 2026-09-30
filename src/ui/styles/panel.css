@@ -40,12 +40,15 @@
 /*
  * レース中の3×3の方向パッド。盤の候補と同じデザインに合わせ、マス目の
  * 中央ではなく交点(0%/50%/100%)に点を置く。方眼は盤の方眼と同じ考え方
- * (background-imageの1px線を50%間隔で繰り返す)で描く
+ * (background-imageの1px線を50%間隔で繰り返す)で描く。
+ * マス目の大きさ(max-width)と候補点の大きさ(button の font-size)は、
+ * 盤の候補(マス目の間隔1に対して半径0.24〜0.32)と同じくらいの比率になる
+ * 組み合わせにしてある
  */
 .direction-pad {
   position: relative;
   width: 100%;
-  max-width: 200px;
+  max-width: 160px;
   aspect-ratio: 1;
   background-image:
     linear-gradient(rgba(32, 17, 39, 0.2) 1px, transparent 1px),
@@ -71,7 +74,7 @@
   border: none;
   background: none;
   color: var(--color-ink);
-  font-size: 1.5rem;
+  font-size: 2.75rem;
   font-weight: 700;
   cursor: pointer;
   padding: 0;
