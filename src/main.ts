@@ -40,7 +40,6 @@ const controllerRef: { current: GameController | null } = { current: null };
 const view = new DomGameView(app, {
   onStart: (settings) => void controllerRef.current!.startGame(settings),
   onPointSelected: (point) => controllerRef.current!.onPointSelected(point),
-  onPadSelected: (accel) => controllerRef.current!.onPadSelected(accel),
   onBackToSettings: () => void controllerRef.current!.backToSettings(),
   onBackToSettingsFromResult: () =>
     controllerRef.current!.backToSettingsFromResult(),

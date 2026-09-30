@@ -33,6 +33,18 @@ function prefersReducedMotion(): boolean {
 }
 
 /**
+ * スマホ(縦並びレイアウト)かどうか。layout.css の横並びレイアウトの
+ * 境目(幅768px以上・横向き)と同じ条件で判定する
+ */
+function isMobileLayout(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    !window.matchMedia?.('(min-width: 768px) and (orientation: landscape)')
+      .matches
+  );
+}
+
+/**
  * 盤(SVG)の描画と入力をまとめる。`GameView` の一部として、次の作業で
  * `DomGameView` に組み込む。この段階では、単体で使える部品として作る
  */
@@ -159,8 +171,10 @@ export class BoardView {
     if (this.isFreshRaceStart(state)) {
       // 新しいレースの始まり(「同じ設定でもう一度」でのやり直しも含む)。
       // 前のレースでピンチして 'manual' のままになっていても、新しい
-      // レースでは必ず自動追従から始める
-      this.cameraMode = 'auto';
+      // レースでは device に応じた既定の状態からやり直す
+      // (オートズームの既定オンは、スマホのときだけにする。PCでは
+      // 「オートズーム」ボタンを押したときだけ自動追従を始める)
+      this.cameraMode = isMobileLayout() ? 'auto' : 'manual';
     }
     if (state.phase === 'placing') {
       // スタート位置選び中はまだ車がないので、全体表示のままにする

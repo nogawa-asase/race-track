@@ -20,7 +20,6 @@ import { SettingsScreen } from './screens/SettingsScreen';
 export interface DomGameViewCallbacks {
   onStart(settings: GameSettings): void;
   onPointSelected(point: Vec): void;
-  onPadSelected(accel: Vec): void;
   onBackToSettings(): void;
   onBackToSettingsFromResult(): void;
   onRetry(): void;
@@ -60,7 +59,6 @@ export class DomGameView implements GameView {
 
     this.board = new BoardView(this.raceScreen, callbacks.onPointSelected);
     this.panel = new ControlPanel(this.raceScreen, {
-      onCandidateSelect: callbacks.onPadSelected,
       onStartPointSelect: callbacks.onPointSelected,
       onStartPreviewChange: (point) => this.board.setPreview(point),
       onBackToSettings: callbacks.onBackToSettings,

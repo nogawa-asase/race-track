@@ -98,23 +98,31 @@ async function step(page: Page): Promise<{
       return { action: 'start' as const, signature };
     }
 
-    const dirButtons = Array.from(
-      document.querySelectorAll<HTMLButtonElement>('.direction-pad button')
-    ).filter((b) => !b.disabled && isVisible(b));
-    if (dirButtons.length > 0) {
-      let best = dirButtons[0];
+    // レース中の候補パッドは廃止(盤がズームされ直接タップできるため)。
+    // 選べる候補の当たり判定(.board-candidate-hit)は isSelectable のもの
+    // にしか描かれないので、これがあれば即座にタップできる。「一番
+    // 加速する」候補を選ぶ方針は、行き先の座標(x+y)が一番大きいものを
+    // 選ぶことで代用する(velocityを問わず、常に同じ向きに偏らせられる)
+    const boardCandidates = Array.from(
+      document.querySelectorAll<SVGCircleElement>('.board .board-candidate-hit')
+    );
+    if (boardCandidates.length > 0) {
+      let best = boardCandidates[0];
       let bestScore = -Infinity;
-      for (const b of dirButtons) {
-        const ax = Number(b.dataset.accelX);
-        const ay = Number(b.dataset.accelY);
-        const score = ax + ay;
+      for (const el of boardCandidates) {
+        const score = Number(el.dataset.pointX) + Number(el.dataset.pointY);
         if (score > bestScore) {
           bestScore = score;
-          best = b;
+          best = el;
         }
       }
-      best.click(); // 1回目: プレビュー
-      best.click(); // 2回目(同じ候補): 確定
+      best.dispatchEvent(
+        new PointerEvent('pointerup', {
+          bubbles: true,
+          cancelable: true,
+          pointerType: 'mouse',
+        })
+      );
       return { action: 'move' as const, signature };
     }
 
@@ -237,7 +245,7 @@ test.describe('盤のカメラ(オートズーム)', () => {
     });
   }
 
-  test('レースが始まると、全体表示のあと自動でズームして手番の車に寄る', async ({
+  test('PC(横並びレイアウト)では、レースが始まっても自動ではズームしない', async ({
     page,
   }) => {
     await startGame(page, 'cpu');
@@ -250,13 +258,12 @@ test.describe('盤のカメラ(オートズーム)', () => {
     // When: 両者がスタート位置を決め、レースが始まる
     await page.locator('.start-position-pad button:has-text("決定")').click();
 
-    // Then: しばらくすると(全体表示を保ってから)ズームして寄る。
-    // 手番がCPU・人どちらでも、レースが始まった時点で自動的にズームする
-    await expect
-      .poll(() => boardCameraScale(page), { timeout: 5000 })
-      .toBeGreaterThan(1);
+    // Then: PC(このテストはDesktopの幅)では、オートズームの既定はオフ
+    // なので、しばらく待っても全体表示のまま
+    await page.waitForTimeout(2000);
+    expect(await boardCameraScale(page)).toBe(1);
 
-    // When: 「オートズーム」ボタンを押しても、今の追従表示のまま(エラーにならない)
+    // When: 「オートズーム」ボタンを押すと、手番の車に寄る
     await page.click('.panel-buttons button:has-text("オートズーム")');
     await expect
       .poll(() => boardCameraScale(page), { timeout: 2000 })

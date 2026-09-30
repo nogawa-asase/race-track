@@ -1,22 +1,9 @@
-/** 操作パネル(ControlPanel・DirectionPad・StartPositionPad)の見た目 */
+/** 操作パネル(ControlPanel・StartPositionPad)の見た目 */
 
 .control-panel {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-}
-
-.control-panel-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  box-sizing: border-box;
-  background: var(--color-card);
-  color: var(--color-ink);
-  border: 3px solid var(--color-ink);
-  border-radius: 20px;
-  box-shadow: 6px 6px 0 var(--color-ink);
 }
 
 .turn-indicator {
@@ -34,36 +21,10 @@
 
 .round-indicator {
   margin: 0;
-  color: #6a5a78;
-}
-
-/*
- * レース中の3×3の方向パッド。盤の候補と同じデザインに合わせ、マス目の
- * 中央ではなく交点(0%/50%/100%)に点を置く。方眼は盤の方眼と同じ考え方
- * (background-imageの1px線を50%間隔で繰り返す)で描く。
- * マス目の大きさ(max-width)と候補点の大きさ(button の font-size)は、
- * 盤の候補(マス目の間隔1に対して半径0.24〜0.32)と同じくらいの比率になる
- * 組み合わせにしてある
- */
-.direction-pad {
-  position: relative;
-  width: 100%;
-  max-width: 128px; /* 元の160pxの8割 */
-  aspect-ratio: 1;
-  /* カードの中央に来るようにする */
-  margin: 0 auto;
-  /*
-   * 方眼は 0%/50% の位置に1pxの線を描く background-image で表す。ただし
-   * 100%(右端・下端)の位置は、背景タイルがちょうど枠の外に来てしまい
-   * 線が描かれないため、border-right/bottom で右端・下端の線を別途足す
-   */
-  background-image:
-    linear-gradient(rgba(32, 17, 39, 0.2) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(32, 17, 39, 0.2) 1px, transparent 1px);
-  background-size: 50% 50%;
-  border-right: 1px solid rgba(32, 17, 39, 0.2);
-  border-bottom: 1px solid rgba(32, 17, 39, 0.2);
-  box-sizing: border-box;
+  /* クリーム色のカードをやめ、ページの背景に直接置くようになったため、
+     本文と同じ色(明るい色)を少し薄めて使う(暗い色だと読めなくなる) */
+  color: var(--color-card);
+  opacity: 0.7;
 }
 
 .start-position-pad {
@@ -71,23 +32,6 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 0.25rem;
   max-width: 220px;
-}
-
-.direction-pad button {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: none;
-  color: var(--color-ink);
-  font-size: 2.75rem;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0;
 }
 
 /* 決定ボタンは、他のボタン(設定に戻る・ルール説明など)と同じトーンにする */
@@ -114,11 +58,6 @@
   box-shadow: none;
 }
 
-.direction-pad button:disabled {
-  cursor: default;
-  color: var(--color-disabled);
-}
-
 /*
  * スタート位置選びの←→(↑↓)は、四角い枠のボタンではなく、矢印そのものを
  * 大きく表示してそれ自体を押せるようにする(決定ボタンは従来どおり)
@@ -133,6 +72,7 @@
   font-size: 2.75rem;
   line-height: 1;
   padding: 0;
+  color: var(--color-card);
 }
 
 .start-position-pad button.arrow-button:disabled {
@@ -140,18 +80,6 @@
   color: var(--color-disabled);
 }
 
-.direction-pad button.candidate-ok.color-red {
-  color: var(--color-red);
-}
-.direction-pad button.candidate-ok.color-blue {
-  color: var(--color-blue);
-}
-.direction-pad button.candidate-goal {
-  color: var(--color-goal-gold);
-}
-.direction-pad button.is-previewed {
-  transform: translate(-50%, -50%) scale(1.35);
-}
 .start-position-pad button.is-previewed {
   outline: 3px solid var(--color-ink);
 }
