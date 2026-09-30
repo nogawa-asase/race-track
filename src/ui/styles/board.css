@@ -101,8 +101,7 @@
   fill: none;
 }
 .mark-offcourse line,
-.mark-occupied line,
-.mark-occupied circle {
+.mark-occupied line {
   stroke: var(--color-disabled);
   stroke-width: 0.06;
 }

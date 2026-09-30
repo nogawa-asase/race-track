@@ -7,7 +7,8 @@ const SYMBOLS: Record<Candidate['status'], string> = {
   ok: '●',
   goal: '★',
   offCourse: '×',
-  occupied: '⊘',
+  // コース外と同じ見た目にする(丸に斜め線だと瞬時にわかりにくいため)
+  occupied: '×',
 };
 
 function isSelectable(candidate: Candidate): boolean {

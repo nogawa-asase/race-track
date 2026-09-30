@@ -33,7 +33,9 @@ function renderMark(candidate: Candidate, big: boolean): SVGElement {
     case 'offCourse':
       return renderCross(p, size, 'mark-offcourse');
     case 'occupied':
-      return renderOccupied(p, size, 'mark-occupied');
+      // コース外(×)と同じ見た目にする(丸に斜め線だと、行けない理由が
+      // 違うだけと瞬時にわかりにくかったため)
+      return renderCross(p, size, 'mark-occupied');
   }
 }
 
@@ -64,24 +66,6 @@ function renderCross(center: Vec, size: number, className: string): SVGElement {
       y1: center.y + d,
       x2: center.x + d,
       y2: center.y - d,
-    })
-  );
-  return g;
-}
-
-function renderOccupied(
-  center: Vec,
-  size: number,
-  className: string
-): SVGElement {
-  const g = el('g', { class: className });
-  g.append(
-    el('circle', { cx: center.x, cy: center.y, r: size, fill: 'none' }),
-    el('line', {
-      x1: center.x - size * 0.7,
-      y1: center.y - size * 0.7,
-      x2: center.x + size * 0.7,
-      y2: center.y + size * 0.7,
     })
   );
   return g;
