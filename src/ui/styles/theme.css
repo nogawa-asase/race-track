@@ -37,3 +37,12 @@ h1 {
 input[type='checkbox'] {
   accent-color: var(--color-red);
 }
+
+/*
+ * クリック(マウス・タップ)で押した後も、ブラウザ標準の青いフォーカス
+ * リングが選択中のように残って見えていたのを消す。キーボード操作での
+ * フォーカスは :focus-visible が別途効くので、アクセシビリティは保たれる
+ */
+button:focus:not(:focus-visible) {
+  outline: none;
+}

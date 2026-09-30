@@ -22,9 +22,10 @@ function isSelectable(candidate: Candidate): boolean {
 
 /**
  * 記号(見た目)よりひとまわり大きい、タップ判定だけのための透明な円。
- * マス目の間隔(1)の半分弱の半径にし、隣の点の判定と重ならないようにする
+ * マス目の間隔(1)に対して、隣の点の判定とじゅうぶん間が空く半径にする
+ * (0.45だと隣同士がほぼ接してしまい、誤って隣の点を押してしまうことがあった)
  */
-const HIT_AREA_RADIUS = 0.45;
+const HIT_AREA_RADIUS = 0.35;
 
 function renderHitArea(point: Vec): SVGCircleElement {
   return el('circle', {
