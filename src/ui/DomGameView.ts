@@ -111,8 +111,13 @@ export class DomGameView implements GameView {
     return this.messageDialog.show(message);
   }
 
-  showThinking(visible: boolean): void {
-    this.panel.setThinking(visible);
+  /**
+   * CPUの「考え中」は、以前は専用の表示があったが今は何も表示しない
+   * (GameController 側の一呼吸置く待ち時間・ルール説明との同期には
+   * 引き続き使われているため、呼び出し自体はそのまま受け取る)
+   */
+  showThinking(_visible: boolean): void {
+    // 何もしない
   }
 
   showResult(

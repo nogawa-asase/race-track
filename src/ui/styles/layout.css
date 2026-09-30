@@ -1,6 +1,7 @@
 /**
- * PC(横並び)とスマホ(縦並び)のレイアウト切り替え。
- * 条件は architecture.md「画面レイアウトの切り替え」のとおり
+ * レース画面のレイアウト。PC・スマホを問わず、盤とその下の操作パネルを
+ * 縦に並べる(以前はPCだけ横並びにしていたが、スマホと同じ見た目に
+ * 統一した)
  */
 
 /*
@@ -15,29 +16,10 @@
   gap: 1rem;
   padding: 1rem;
   box-sizing: border-box;
-  max-width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 .race-screen .board {
   max-width: 100%;
-}
-
-@media (min-width: 768px) and (orientation: landscape) {
-  /* ":not([hidden])" は、上の基本ルールと詳細度を揃えるため(揃えないと、
-     詳細度で基本ルールが勝ってしまい、横並びに切り替わらなくなる) */
-  .race-screen:not([hidden]) {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-
-  .race-screen .board {
-    flex: 0 0 auto;
-    width: min(70vh, 60%);
-  }
-
-  .race-screen .control-panel {
-    /* 中身(方向パッドなど)の幅に合わせて縮む。余った横幅いっぱいに
-       クリーム色のカードが広がってしまうのを防ぐ */
-    flex: 0 1 auto;
-  }
 }

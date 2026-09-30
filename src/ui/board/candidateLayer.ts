@@ -52,6 +52,9 @@ function renderMark(candidate: Candidate): SVGElement {
       // コース外(×)と同じ見た目にする(丸に斜め線だと、行けない理由が
       // 違うだけと瞬時にわかりにくかったため)
       return renderCross(p, size, 'mark-occupied');
+    case 'deadEnd':
+      // 行き止まりのアラートで断った候補も、同じ×にする
+      return renderCross(p, size, 'mark-deadend');
   }
 }
 

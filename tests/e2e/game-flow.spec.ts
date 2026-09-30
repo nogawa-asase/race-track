@@ -1,7 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
 
 /**
- * 設定画面から、指定した対戦相手でスタートする(コース・強さ等は既定値のまま)
+ * 設定画面から、指定した対戦相手でスタートする(コース・強さ等は既定値のまま)。
+ * 行き止まりのアラート(既定オン)は、盤タップの戦略が単純な機械的な
+ * テスト(「一番加速する候補」を選び続けるだけ)だと、断られてやり直す
+ * ケースが増えて決着までのステップ数が大きく伸びるため、ここでは一律
+ * オフにする(アラート自体の動作は別のテストで確認する)
  */
 async function startGame(page: Page, opponent: 'cpu' | 'human'): Promise<void> {
   await page.goto('./');
@@ -9,6 +13,7 @@ async function startGame(page: Page, opponent: 'cpu' | 'human'): Promise<void> {
   if (opponent === 'human') {
     await page.selectOption('select[name="opponent"]', 'human');
   }
+  await page.uncheck('#alert');
   await page.click('.settings-screen button:has-text("スタート")');
 }
 
@@ -167,11 +172,15 @@ async function playUntilFinished(page: Page, maxSteps = 300): Promise<void> {
   throw new Error('決着がつかないまま、ステップ上限に達しました');
 }
 
-/** CPUが「考え中」になるまで、人の手番があれば操作しながら待つ */
+/**
+ * CPUの手番になる(=「考え中」の間)まで、人の手番があれば操作しながら
+ * 待つ。専用の表示は廃止したため、手番表示の文言(「CPU(色)が考え中…」)
+ * で判定する
+ */
 async function waitForCpuThinking(page: Page, maxSteps = 60): Promise<void> {
   for (let i = 0; i < maxSteps; i++) {
-    const visible = await page.locator('.thinking-indicator').isVisible();
-    if (visible) return;
+    const turnText = await page.locator('.turn-indicator').textContent();
+    if (turnText?.includes('CPU')) return;
     const { action, signature } = await step(page);
     if (action === 'move') {
       await waitForStateChange(page, signature);

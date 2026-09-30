@@ -2,8 +2,8 @@
 
 .app-logo {
   position: relative;
-  width: 320px;
-  height: 96px;
+  width: 288px;
+  height: 86.4px;
   margin: 8px auto 1rem;
   border: 3px solid var(--color-ink);
   border-radius: 12px;
@@ -17,15 +17,15 @@
 }
 
 /*
- * 上端(16px)・下端(16+64=80px)とも、方眼の1マス(16px)の倍数に
+ * 上端・下端とも、方眼の1マス(14.4px。10%縮小前は16pxだった)の倍数に
  * ぴったり合わせる(そうしないと、道と芝の境目がグリッド線からずれて見える)
  */
 .app-logo-road {
   position: absolute;
   left: 0;
   right: 0;
-  top: 16px;
-  height: 64px;
+  top: 14.4px;
+  height: 57.6px;
   background: var(--color-logo-road);
 }
 
@@ -40,7 +40,7 @@
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.45) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.45) 1px, transparent 1px);
-  background-size: 16px 16px;
+  background-size: 14.4px 14.4px;
   pointer-events: none;
 }
 
@@ -57,7 +57,7 @@
   font-family: var(--font-heading);
   font-weight: 700;
   letter-spacing: 0.05em;
-  font-size: 40px;
+  font-size: 36px;
   white-space: nowrap;
   /* 文字の影。複製した文字を重ねる方式だと h1 の実際の文章が二重に
      なってしまうため、text-shadow で同じ見た目にする */
@@ -73,14 +73,14 @@
 }
 
 /*
- * 英語版(RACE TRACK)は文字数が多く、日本語版と同じ40pxでは枠に収まらない
- * ため、枠を横に広げ(320→384px。1マス=16pxの倍数を保つ)、文字も
+ * 英語版(RACE TRACK)は文字数が多く、日本語版と同じ36pxでは枠に収まらない
+ * ため、枠を横に広げ(288→345.6px。1マス=14.4pxの倍数を保つ)、文字も
  * 縮めている
  */
 .app-logo-en {
-  width: 384px;
+  width: 345.6px;
 }
 
 .app-logo-en .app-logo-text {
-  font-size: 36px;
+  font-size: 32.4px;
 }

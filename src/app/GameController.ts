@@ -22,7 +22,13 @@ import { listCandidates } from '../domain/rules/listCandidates';
 import { listStartPoints } from '../domain/rules/listStartPoints';
 import { willBeDeadEnd } from '../domain/rules/willBeDeadEnd';
 import type { DistanceTable } from '../domain/table/types';
-import type { Action, GameSettings, GameState, Vec } from '../domain/types';
+import type {
+  Action,
+  Candidate,
+  GameSettings,
+  GameState,
+  Vec,
+} from '../domain/types';
 import { equals } from '../domain/vec';
 
 /** 本番用の Random(Math.random をそのまま使う。ドメイン層には置けない) */
@@ -30,6 +36,12 @@ const mathRandom: Random = { next: () => Math.random() };
 
 /** CPUの手番で「考え中」を表示する時間(PRDの非機能要件) */
 const DEFAULT_THINKING_MS = 500;
+
+/**
+ * 行き止まりが確定したとき、矢印と9候補(すべてバツ)を見せてから、
+ * 決着(結果画面につながるメッセージ)を出すまで置く間
+ */
+const DEFAULT_DEAD_END_PAUSE_MS = 1000;
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -54,11 +66,18 @@ export class GameController {
   /** ルール説明が開いている間、CPUの手番の進行を止める(PRD「6-2. ルール説明」) */
   private rulesOpen = false;
   private rulesWaiters: Array<() => void> = [];
+  /**
+   * 今の手番で、行き止まりのアラート(設定がオンのとき)によって断った
+   * 加速(候補)。断った候補は、選び直すまで盤にバツで表示し続ける。
+   * 手番が変わるたびに空にする
+   */
+  private rejectedAccels: Vec[] = [];
 
   constructor(
     private readonly view: GameView,
     private readonly random: Random = mathRandom,
-    private readonly thinkingMs: number = DEFAULT_THINKING_MS
+    private readonly thinkingMs: number = DEFAULT_THINKING_MS,
+    private readonly deadEndPauseMs: number = DEFAULT_DEAD_END_PAUSE_MS
   ) {}
 
   /** コースの準備(表の読み込み)→ くじ → スタート位置選び */
@@ -145,10 +164,46 @@ export class GameController {
     if (state.phase === 'racing') {
       const candidates = listCandidates(state, this.course!);
       const candidate = candidates.find((c) => equals(c.target, point));
-      if (candidate && isSelectable(candidate)) {
-        this.tryApply(state, { type: 'move', accel: candidate.accel });
+      if (!candidate || !isSelectable(candidate)) return;
+
+      if (
+        this.settings!.alert &&
+        this.wouldCauseDeadEnd(state, candidate.accel)
+      ) {
+        this.rejectDeadEndCandidate(state, candidates, candidate.accel);
+        return;
       }
+      this.tryApply(state, { type: 'move', accel: candidate.accel });
     }
+  }
+
+  /**
+   * その加速で動くと、指した本人が次の手番で行き止まりになるか
+   * (行き止まりのアラート用。実際には動かさず判定だけする)
+   */
+  private wouldCauseDeadEnd(state: GameState, accel: Vec): boolean {
+    const next = applyAction(state, this.course!, { type: 'move', accel });
+    return willBeDeadEnd(next, this.course!, state.turn);
+  }
+
+  /**
+   * 行き止まりのアラート(設定オン)により、選んだ候補を断る。移動は
+   * せず、その候補をバツとして描き直してからメッセージを見せる
+   * (機能設計書「危ない手のアラート」)
+   */
+  private rejectDeadEndCandidate(
+    state: GameState,
+    candidates: readonly Candidate[],
+    rejectedAccel: Vec
+  ): void {
+    this.rejectedAccels.push(rejectedAccel);
+    const patched = candidates.map((c) =>
+      this.rejectedAccels.some((a) => equals(a, c.accel))
+        ? { ...c, status: 'deadEnd' as const }
+        : c
+    );
+    this.view.renderBoard(state, this.course!, patched);
+    void this.view.showMessage(DEAD_END_WARNING);
   }
 
   /** 方向パッドでの確定(レース中のみ) */
@@ -211,21 +266,26 @@ export class GameController {
    */
   private async runTurns(token: number): Promise<void> {
     if (!this.isCurrent(token) || !this.state) return;
+    this.rejectedAccels = [];
 
-    if (this.state.phase === 'racing') {
-      const settled = settleDeadEnd(this.state, this.course!);
-      if (settled !== this.state) {
-        this.state = settled;
-        await this.finish(token);
-        return;
-      }
-    }
-
-    const player = this.state.players[this.state.turn];
     const candidates =
       this.state.phase === 'racing'
         ? listCandidates(this.state, this.course!)
         : null;
+
+    if (candidates && !candidates.some(isSelectable)) {
+      // 行き止まり: いきなり結果を出さず、まず矢印と9候補(すべてバツ)を
+      // 見せてから、少し間を置いて決着させる
+      this.view.renderBoard(this.state, this.course!, candidates);
+      await delay(this.deadEndPauseMs);
+      if (!this.isCurrent(token) || !this.state) return;
+      const settled = settleDeadEnd(this.state, this.course!);
+      this.state = settled;
+      await this.finish(token);
+      return;
+    }
+
+    const player = this.state.players[this.state.turn];
     this.view.renderBoard(this.state, this.course!, candidates);
 
     if (player.kind === 'human') {

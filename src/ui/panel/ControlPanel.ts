@@ -17,7 +17,6 @@ export class ControlPanel {
   private readonly container: HTMLElement;
   private readonly turnEl: HTMLElement;
   private readonly roundEl: HTMLElement;
-  private readonly thinkingEl: HTMLElement;
   private readonly autoZoomButton: HTMLButtonElement;
 
   constructor(container: HTMLElement, callbacks: ControlPanelCallbacks) {
@@ -28,10 +27,6 @@ export class ControlPanel {
     this.turnEl.className = 'turn-indicator';
     this.roundEl = document.createElement('p');
     this.roundEl.className = 'round-indicator';
-    this.thinkingEl = document.createElement('p');
-    this.thinkingEl.className = 'thinking-indicator';
-    this.thinkingEl.textContent = '考え中…';
-    this.thinkingEl.hidden = true;
 
     const buttons = document.createElement('div');
     buttons.className = 'panel-buttons';
@@ -49,7 +44,7 @@ export class ControlPanel {
     this.autoZoomButton.addEventListener('click', callbacks.onAutoZoom);
     buttons.append(backButton, rulesButton, this.autoZoomButton);
 
-    this.container.append(this.turnEl, this.roundEl, this.thinkingEl, buttons);
+    this.container.append(this.turnEl, this.roundEl, buttons);
     container.append(this.container);
   }
 
@@ -62,14 +57,8 @@ export class ControlPanel {
     // スタート位置選び中は周回がまだ始まっていない(常に0)ため、意味の
     // ない表示になる。レース中だけ見せる
     this.roundEl.hidden = state.phase !== 'racing';
-    // オートズームはスマホ専用の機能のため、PC(横並びレイアウト)では
-    // ボタンごと表示しない
+    // オートズームはスマホ専用の機能のため、PCでは表示しない
     this.autoZoomButton.hidden = !isMobileLayout();
-  }
-
-  /** CPUの「考え中」の表示を切り替える */
-  setThinking(visible: boolean): void {
-    this.thinkingEl.hidden = !visible;
   }
 
   destroy(): void {

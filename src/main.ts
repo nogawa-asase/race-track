@@ -22,37 +22,33 @@ if (!app) {
 }
 
 /*
- * ダイアログ(確認・メッセージ・ルール説明)を閉じると、開く前に押した
- * ボタンへフォーカスが自動的に戻る。この「自動で戻ったフォーカス」は、
- * ブラウザによっては :focus-visible の判定が一定せず、クリックした
- * だけなのに次にそのボタンを見たときフォーカスの枠が残って見えることが
- * あったため、ダイアログが閉じたら明示的にフォーカスを外す。
- * dialog の close イベントはバブリングしないため、document でも
- * 捕捉フェーズ(true)で拾う
+ * ボタンがクリック・タップで押されたあと、フォーカスの枠(outline)が
+ * 残って見えるのを消す。theme.css の `button:focus:not(:focus-visible)`
+ * だけでは、スマホの一部ブラウザがタップによるフォーカスも
+ * :focus-visible と判定してしまい効かないことがあるため、JS 側でも
+ * 直前の操作がポインタ(マウス・タッチ)かキーボードかを覚えておき、
+ * ポインタ操作の直後にボタンがフォーカスされたら明示的に外す。
+ *
+ * 「フォーカスされた直後」を使うのは、ダイアログを閉じたときに
+ * ブラウザが自動的に(開く前に押した)ボタンへフォーカスを戻す挙動も
+ * 同じ仕組みで拾うため(dialog の close イベントはバブリングしない上、
+ * スマホでは close よりさらに後にフォーカスが移ることがあり、close を
+ * 監視するだけでは間に合わないことがあった)。keydown の直後は
+ * lastInputWasPointer が false になるので、キーボード操作でのフォーカス
+ * 表示(アクセシビリティ)には影響しない
  */
+let lastInputWasPointer = false;
 document.addEventListener(
-  'close',
-  () => {
-    (document.activeElement as HTMLElement | null)?.blur();
-  },
+  'pointerdown',
+  () => (lastInputWasPointer = true),
   true
 );
-
-/*
- * 上のダイアログの close 対策とは別に、スマホの一部ブラウザは、
- * タップ(touch)によるフォーカスも :focus-visible と判定することが
- * あり、その場合は theme.css の `button:focus:not(:focus-visible)`
- * による打ち消しが効かず、タップしたボタンにフォーカスの枠が残って
- * 見える。ポインタ操作(マウス・タッチ)でボタンを押した直後に明示的に
- * フォーカスを外すことで、この判定のブレに関係なく枠を残さないように
- * する(キーボード操作でのクリックは pointerup を伴わないため、
- * キーボード操作でのフォーカス表示には影響しない)
- */
+document.addEventListener('keydown', () => (lastInputWasPointer = false), true);
 document.addEventListener(
-  'pointerup',
+  'focus',
   (event) => {
-    if (!(event.target instanceof Element)) return;
-    event.target.closest('button')?.blur();
+    if (!lastInputWasPointer) return;
+    (event.target as Element | null)?.closest('button')?.blur();
   },
   true
 );

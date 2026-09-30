@@ -69,7 +69,7 @@ describe('GameController', () => {
       // Given: 乱数0.1(0.5未満)→ 人が先攻
       stubTableFetch();
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.1), 0);
+      const controller = new GameController(view, fixedRandom(0.1), 0, 0);
 
       // When
       await controller.startGame({ ...baseSettings, turnOrder: 'lottery' });
@@ -83,7 +83,7 @@ describe('GameController', () => {
       // Given
       stubTableFetch();
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.99), 0);
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
 
       // When
       await controller.startGame({ ...baseSettings, turnOrder: 'first' });
@@ -97,7 +97,7 @@ describe('GameController', () => {
       // Given
       stubTableFetch();
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.99), 0);
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
 
       // When
       await controller.startGame({ ...baseSettings, opponent: 'human' });
@@ -113,7 +113,7 @@ describe('GameController', () => {
       // Given
       stubTableFetch();
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.99), 0);
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
       await controller.startGame(baseSettings); // turnOrder: 'first' → 人が先攻
 
       const rendering = view.rendered.at(-1)!;
@@ -136,7 +136,7 @@ describe('GameController', () => {
       // Given
       stubTableFetch();
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.99), 0);
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
 
       // When
       await controller.startGame({ ...baseSettings, turnOrder: 'second' });
@@ -156,7 +156,7 @@ describe('GameController', () => {
       // Given
       stubTableFetch();
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.99), 0);
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
       await controller.startGame(baseSettings);
       const placing = view.rendered.at(-1)!;
       controller.onPointSelected(placing.course.startPoints[0]);
@@ -181,7 +181,7 @@ describe('GameController', () => {
       // Given
       stubTableFetch();
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.99), 0);
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
       await controller.startGame(baseSettings);
       const placing = view.rendered.at(-1)!;
       controller.onPointSelected(placing.course.startPoints[0]);
@@ -203,7 +203,7 @@ describe('GameController', () => {
       // 人はこのテストの中で chooseMove を呼んで代行する)
       stubTableFetch();
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.99), 0);
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
       await controller.startGame(baseSettings); // opponent: 'cpu', turnOrder: 'first'
 
       const course = buildCourse(hairpin);
@@ -254,7 +254,7 @@ describe('GameController', () => {
       // すべてコースの外になることを、buildDistanceTable と同じ判定で確かめてある)
       stubTableFetch();
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.99), 0);
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
       await controller.startGame({ ...baseSettings, opponent: 'human' });
 
       let placing = view.rendered.at(-1)!;
@@ -316,6 +316,106 @@ describe('GameController', () => {
         )
       ).toBe(true);
     });
+
+    /** (2,19)・v=(0,4) から加速(1,1)を選ぶと (3,24) へ行き、次の手番で行き止まりになる状態を作る */
+    function setDeadEndBoundState(
+      controller: GameController,
+      racing: { state: import('../../../src/domain/types').GameState }
+    ): void {
+      const racingState = racing.state;
+      (controller as unknown as { state: typeof racingState }).state = {
+        ...racingState,
+        phase: 'racing',
+        turn: 0,
+        round: 5,
+        players: [
+          {
+            ...racingState.players[0],
+            position: { x: 2, y: 19 },
+            velocity: { x: 0, y: 4 },
+            trail: [{ x: 2, y: 19 }],
+            goalRound: null,
+          },
+          {
+            ...racingState.players[1],
+            position: racingState.players[1].position!,
+            velocity: { x: 0, y: 0 },
+            trail: [racingState.players[1].position!],
+            goalRound: null,
+          },
+        ],
+      };
+    }
+
+    it('行き止まりのアラート(オン)で盤を直接タップすると、移動せずメッセージが出て、その候補がバツになる', async () => {
+      // Given: onPadSelected と違い、盤への直接タップ相当の onPointSelected では
+      // 行き止まりのアラート(設定オン)が働く
+      stubTableFetch();
+      const view = new FakeGameView();
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
+      await controller.startGame({
+        ...baseSettings,
+        opponent: 'human',
+        alert: true,
+      });
+
+      let placing = view.rendered.at(-1)!;
+      while (placing.state.phase === 'placing') {
+        controller.onPointSelected(
+          placing.course.startPoints[placing.state.turn]
+        );
+        await settle();
+        placing = view.rendered.at(-1)!;
+      }
+      setDeadEndBoundState(controller, { state: view.rendered.at(-1)!.state });
+
+      // When: 行き止まりになる候補(3,24)を盤タップで選ぶ
+      controller.onPointSelected({ x: 3, y: 24 });
+      await settle();
+
+      // Then: 移動せず(Aの番のまま)、メッセージが出て、決着もしない
+      expect(view.rendered.at(-1)?.state.turn).toBe(0);
+      expect(view.messages).toContain(DEAD_END_WARNING);
+      expect(view.results.length).toBe(0);
+
+      // その候補だけがバツ(status: 'deadEnd')として描き直され、他の候補は
+      // 元の分類のままになる
+      const candidates = view.rendered.at(-1)?.candidates ?? [];
+      const rejected = candidates.find(
+        (c) => c.target.x === 3 && c.target.y === 24
+      );
+      expect(rejected?.status).toBe('deadEnd');
+      expect(candidates.filter((c) => c.status === 'deadEnd').length).toBe(1);
+    });
+
+    it('行き止まりのアラート(オフ)なら、そのまま移動して事後にメッセージが出る', async () => {
+      stubTableFetch();
+      const view = new FakeGameView();
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
+      await controller.startGame({
+        ...baseSettings,
+        opponent: 'human',
+        alert: false,
+      });
+
+      let placing = view.rendered.at(-1)!;
+      while (placing.state.phase === 'placing') {
+        controller.onPointSelected(
+          placing.course.startPoints[placing.state.turn]
+        );
+        await settle();
+        placing = view.rendered.at(-1)!;
+      }
+      setDeadEndBoundState(controller, { state: view.rendered.at(-1)!.state });
+
+      // When: 行き止まりになる候補(3,24)を盤タップで選ぶ
+      controller.onPointSelected({ x: 3, y: 24 });
+      await settle();
+
+      // Then: 事前には止められず、移動したうえで事後にメッセージが出る
+      expect(view.rendered.at(-1)?.state.turn).toBe(1);
+      expect(view.messages).toContain(DEAD_END_WARNING);
+    });
   });
 
   describe('backToSettings・retry', () => {
@@ -323,7 +423,7 @@ describe('GameController', () => {
       // Given
       stubTableFetch();
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.99), 0);
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
       await controller.startGame(baseSettings);
       view.queueConfirm(true);
 
@@ -338,7 +438,7 @@ describe('GameController', () => {
       // Given
       stubTableFetch();
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.99), 0);
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
       await controller.startGame(baseSettings);
       const before = view.rendered.length;
       view.queueConfirm(false);
@@ -355,7 +455,7 @@ describe('GameController', () => {
       // Given
       stubTableFetch();
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.99), 0);
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
       await controller.startGame(baseSettings);
 
       // When: confirm を積んでいない状態でも戻れる
@@ -372,7 +472,7 @@ describe('GameController', () => {
       );
       vi.stubGlobal('fetch', fetchMock);
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.99), 0);
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
       await controller.startGame(baseSettings);
       const callsAfterFirstStart = fetchMock.mock.calls.length;
 
@@ -393,7 +493,7 @@ describe('GameController', () => {
         vi.fn(async () => ({ ok: false, body: null }) as unknown as Response)
       );
       const view = new FakeGameView();
-      const controller = new GameController(view, fixedRandom(0.5), 0);
+      const controller = new GameController(view, fixedRandom(0.5), 0, 0);
 
       // When
       await controller.startGame(baseSettings);
@@ -413,7 +513,7 @@ describe('pauseForRules・resumeFromRules', () => {
     // (startGame は、置き終わるかブロックされるまで解決しないため、await しない)
     stubTableFetch();
     const view = new FakeGameView();
-    const controller = new GameController(view, fixedRandom(0.99), 0);
+    const controller = new GameController(view, fixedRandom(0.99), 0, 0);
     controller.pauseForRules();
     void controller.startGame({ ...baseSettings, turnOrder: 'second' }); // CPUが先攻
     await settle();

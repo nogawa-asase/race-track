@@ -82,7 +82,13 @@ export type Action =
   | { readonly type: 'place'; readonly point: Vec }
   | { readonly type: 'move'; readonly accel: Vec };
 
-export type CandidateStatus = 'ok' | 'goal' | 'offCourse' | 'occupied';
+/**
+ * 'deadEnd' は分類(classify.ts)の結果ではなく、行き止まりのアラート
+ * (設定オン)で断った候補を、選び直すまでバツ表示にするための状態
+ * (GameController が上書きする)
+ */
+export type CandidateStatus =
+  'ok' | 'goal' | 'offCourse' | 'occupied' | 'deadEnd';
 
 /** 9候補の1つ */
 export interface Candidate {

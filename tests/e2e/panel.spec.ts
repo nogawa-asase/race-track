@@ -14,7 +14,7 @@ async function startGame(page: import('@playwright/test').Page): Promise<void> {
 }
 
 test.describe('レイアウトの切り替え', () => {
-  test('幅768px以上・横向きでは、盤と操作パネルが横並びになる', async ({
+  test('幅768px以上・横向き(PC)でも、スマホと同じく盤の下に操作パネルが並ぶ', async ({
     page,
   }) => {
     // Given
@@ -27,7 +27,7 @@ test.describe('レイアウトの切り替え', () => {
     const flexDirection = await page
       .locator('.race-screen')
       .evaluate((el) => getComputedStyle(el).flexDirection);
-    expect(flexDirection).toBe('row');
+    expect(flexDirection).toBe('column');
   });
 
   test('幅360px(スマホ)では、縦並びになり、横スクロールなしで表示される', async ({
