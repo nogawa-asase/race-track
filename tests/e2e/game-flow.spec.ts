@@ -309,7 +309,7 @@ test.describe('ルール説明(PRD「6-2. ルール説明」)', () => {
     // Then
     await expect(page.locator('.rules-dialog[open]')).toBeVisible();
     await expect(page.locator('.rules-dialog')).toContainText('ゲームのルール');
-    await expect(page.locator('.rules-dialog')).toContainText('行き止まり');
+    await expect(page.locator('.rules-dialog')).toContainText('ハンドル');
 
     // When: 閉じる
     await page.click('.rules-dialog button:has-text("閉じる")');

@@ -22,7 +22,7 @@ export class SettingsScreen {
     this.container.className = 'settings-screen';
 
     this.opponentSelect = this.buildSelect('opponent', [
-      { value: 'cpu', label: 'CPU' },
+      { value: 'cpu', label: 'CPU(青)' },
       { value: 'human', label: '人' },
     ]);
     this.courseSelect = this.buildSelect(

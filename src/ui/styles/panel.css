@@ -44,3 +44,13 @@
   font-weight: 600;
   box-shadow: 3px 3px 0 var(--color-ink);
 }
+
+/*
+ * リタイヤは他のボタンと違い、その場でレースを終わらせる操作のため、
+ * 画面の右下(このボタンの並びの右端)に離して置き、誤って他のボタンと
+ * 押し間違えないよう色も変える
+ */
+.panel-buttons .retire-button {
+  margin-left: auto;
+  background: var(--color-dangerous);
+}

@@ -43,7 +43,7 @@ function renderCandidateDiagram(): SVGSVGElement {
 
 /**
  * ルール説明ダイアログ(PRD「6-2. ルール説明」)。
- * 内容は PRD「ゲームのルール」(準備・1手の進め方・ゴールと勝敗・このゲームで決めたこと)に対応する
+ * スクロールなしで1画面に収まるよう、短い文章4つ(間に慣性点の図)にまとめる
  */
 export class RulesDialog {
   private readonly dialog: HTMLDialogElement;
@@ -52,54 +52,34 @@ export class RulesDialog {
     this.dialog = document.createElement('dialog');
     this.dialog.className = 'rules-dialog';
 
+    const body = document.createElement('div');
+    body.className = 'rules-dialog-body';
+
     const title = document.createElement('h2');
     title.textContent = 'ゲームのルール';
 
-    const prep = document.createElement('section');
-    prep.innerHTML = `
-      <h3>準備</h3>
-      <ul>
-        <li>コースの片方の端がスタートライン、もう片方の端がゴールライン</li>
-        <li>車は格子点(方眼の線の交点)の上だけを動く</li>
-        <li>先攻後攻を決め、手番順にスタートライン上の格子点を1つ選んで車を置く。相手の車がある点は選べない</li>
-        <li>はじめの速度は0</li>
-      </ul>`;
+    const p1 = document.createElement('p');
+    p1.textContent = '車は急に止まることも、加速することもできません。';
 
-    const moveSection = document.createElement('section');
-    moveSection.innerHTML = `
-      <h3>1手の進め方</h3>
-      <p>行き先は、次の3つの条件をすべて満たす点から選ぶ。</p>
-      <ol>
-        <li>コースからはみ出さない(ゴールする手を除く)</li>
-        <li>相手の車がいる点には止まれない(衝突禁止)</li>
-        <li>加速・減速は1手に1目盛りまで(前の手と同じだけ進んだ点(慣性点)を中心とする3×3の9点(候補)のどれか)</li>
-      </ol>`;
-    moveSection.append(renderCandidateDiagram());
+    const p2 = document.createElement('p');
+    p2.textContent =
+      'この世界の車は、1つ目の場所から、今の場所のスピードから、1マス分しか調整できません。';
 
-    const goal = document.createElement('section');
-    goal.innerHTML = `
-      <h3>ゴールと勝敗</h3>
-      <ul>
-        <li>1手の線分がゴールラインに到達・通過、またはぴったり止まったらゴール</li>
-        <li>先にゴールした方の勝ち。ただし同じ周回で両者がゴールしたら後攻の勝ち(同着ルール)</li>
-        <li>自分の手番で9候補がすべて選べないときは、その時点で負け(行き止まり)</li>
-      </ul>`;
+    const p3 = document.createElement('p');
+    p3.textContent =
+      '相手より先にゴールしよう。カーブではちゃんとブレーキをかけて!あとハンドルも切ってね!';
 
-    const decided = document.createElement('section');
-    decided.innerHTML = `
-      <h3>このゲームで決めたこと</h3>
-      <ul>
-        <li>行き止まりは負け(コースの外が理由でも、相手の車に塞がれた場合でも)</li>
-        <li>速度0のとき、その場にとどまる手も認める(そのため速度0では行き止まりにならない)</li>
-        <li>同着は後攻の勝ち</li>
-      </ul>`;
+    const p4 = document.createElement('p');
+    p4.textContent =
+      '同じマス目には、車は2台止まれません。だから・・・先行はいつも、先に進んで相手を邪魔できます。それにも関わらず同じターン数でゴールできたら、後攻の勝ちです!';
 
     const closeButton = document.createElement('button');
     closeButton.type = 'button';
     closeButton.textContent = '閉じる';
     closeButton.addEventListener('click', () => this.dialog.close());
 
-    this.dialog.append(title, prep, moveSection, goal, decided, closeButton);
+    body.append(title, p1, p2, renderCandidateDiagram(), p3, p4, closeButton);
+    this.dialog.append(body);
     container.append(this.dialog);
   }
 

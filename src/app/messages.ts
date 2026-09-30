@@ -88,6 +88,20 @@ export function tieRulePendingMessage(
 /** 設定に戻る前の確認 */
 export const CONFIRM_BACK_TO_SETTINGS = 'レースをやめて、設定に戻りますか?';
 
+/** リタイヤ前の確認 */
+export const CONFIRM_RETIRE = 'リタイヤしますか? 相手の勝ちになります';
+
+/** リタイヤで決着したときの表示 */
+export function retireResultMessage(
+  opponent: 'cpu' | 'human',
+  loser: PlayerRef,
+  winner: PlayerRef
+): string {
+  const loserLabel = playerLabel(opponent, loser.kind, loser.color);
+  const winnerLabel = playerLabel(opponent, winner.kind, winner.color);
+  return `${loserLabel}がリタイヤしました。${winnerLabel}の勝ちです`;
+}
+
 /** 想定外のエラーで、レースを中断して設定に戻すときの表示 */
 export const ERROR_RETURN_TO_SETTINGS =
   'エラーが起きました。設定画面に戻ります';

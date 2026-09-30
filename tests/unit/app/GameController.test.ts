@@ -485,6 +485,75 @@ describe('GameController', () => {
     });
   });
 
+  describe('retire', () => {
+    it('CPU戦: 手番によらず、常に人が負けCPUの勝ちになる', async () => {
+      // Given: まだ誰もスタート位置を置いていない状態(人の手番)
+      stubTableFetch();
+      const view = new FakeGameView();
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
+      await controller.startGame(baseSettings);
+      view.queueConfirm(true);
+
+      // When
+      await controller.retire();
+
+      // Then
+      expect(view.results.length).toBe(1);
+      expect(view.results[0].result.reason).toBe('retire');
+      const cpuIndex = view.rendered
+        .at(-1)!
+        .state.players.findIndex((p) => p.kind === 'cpu');
+      expect(view.results[0].result.winner).toBe(cpuIndex);
+      expect(
+        view.messages.some((m) =>
+          m.includes('リタイヤしました。CPU(青)の勝ちです')
+        )
+      ).toBe(true);
+    });
+
+    it('人同士: 今の手番のプレイヤーが負けになる', async () => {
+      // Given
+      stubTableFetch();
+      const view = new FakeGameView();
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
+      await controller.startGame({ ...baseSettings, opponent: 'human' });
+      // 赤(添字0)が置いて、青(添字1)の手番にする
+      const placing = view.rendered.at(-1)!;
+      controller.onPointSelected(placing.course.startPoints[0]);
+      await settle();
+      expect(view.rendered.at(-1)?.state.turn).toBe(1);
+      view.queueConfirm(true);
+
+      // When
+      await controller.retire();
+
+      // Then: 今の手番(青・添字1)が負け、赤(添字0)の勝ち
+      expect(view.results.length).toBe(1);
+      expect(view.results[0].result.reason).toBe('retire');
+      expect(view.results[0].result.winner).toBe(0);
+      expect(
+        view.messages.some((m) =>
+          m.includes('青がリタイヤしました。赤の勝ちです')
+        )
+      ).toBe(true);
+    });
+
+    it('確認で「いいえ」なら何も起きない', async () => {
+      // Given
+      stubTableFetch();
+      const view = new FakeGameView();
+      const controller = new GameController(view, fixedRandom(0.99), 0, 0);
+      await controller.startGame(baseSettings);
+      view.queueConfirm(false);
+
+      // When
+      await controller.retire();
+
+      // Then
+      expect(view.results.length).toBe(0);
+    });
+  });
+
   describe('エラー処理', () => {
     it('表の読み込みに失敗したら、メッセージを出して設定画面に戻る', async () => {
       // Given

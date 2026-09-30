@@ -44,15 +44,29 @@ dialog button {
   box-shadow: 3px 3px 0 var(--color-ink);
 }
 
+/*
+ * スクロールは中の .rules-dialog-body だけにかける(dialog 自身に
+ * overflow-y: auto をかけると、スクロールバーが border-radius の内側を
+ * 突き破って表示され、右上・左下の角が尖って見える不具合があった)
+ */
 .rules-dialog {
   max-width: min(90vw, 560px);
   max-height: 80vh;
+  overflow: hidden;
+}
+
+.rules-dialog-body {
+  max-height: calc(80vh - 2.5rem); /* dialog の上下 padding(1.25rem×2)ぶんを引く */
   overflow-y: auto;
 }
 
 .rules-dialog h2 {
   margin-top: 0;
   font-family: var(--font-heading);
+}
+
+.rules-dialog p {
+  margin: 0.75rem 0;
 }
 
 .rules-dialog .rules-diagram {

@@ -1,10 +1,12 @@
 import type { GameView } from './GameView';
 import {
   CONFIRM_BACK_TO_SETTINGS,
+  CONFIRM_RETIRE,
   DEAD_END_WARNING,
   ERROR_RETURN_TO_SETTINGS,
   deadEndResultMessage,
   lotteryMessage,
+  retireResultMessage,
   tieRulePendingMessage,
 } from './messages';
 import { loadTable } from './loadTable';
@@ -17,7 +19,7 @@ import type { Random } from '../domain/cpu/random';
 import { applyAction } from '../domain/rules/applyAction';
 import { isSelectable } from '../domain/rules/classify';
 import { createGame } from '../domain/rules/createGame';
-import { settleDeadEnd } from '../domain/rules/judge';
+import { finish, settleDeadEnd } from '../domain/rules/judge';
 import { listCandidates } from '../domain/rules/listCandidates';
 import { listStartPoints } from '../domain/rules/listStartPoints';
 import { willBeDeadEnd } from '../domain/rules/willBeDeadEnd';
@@ -150,6 +152,43 @@ export class GameController {
     this.raceToken++; // 進行中の非同期処理を無効化する
     this.state = null;
     this.view.showSettings(this.settings!);
+  }
+
+  /**
+   * 確認のうえリタイヤする(スタート位置選び・レース画面から)。
+   * CPU戦は、手番によらずいつも人が負け・CPUの勝ちになる。人同士は、
+   * 今の手番のプレイヤーが負けになる(この画面を操作している側が
+   * 諦めたとみなす)
+   */
+  async retire(): Promise<void> {
+    if (!this.state || !this.settings || this.state.phase === 'finished') {
+      return;
+    }
+    const ok = await this.view.confirm(CONFIRM_RETIRE);
+    // confirm() で待っている間に、進行中だったCPUの手番などが決着させて
+    // いることもあるため、待ったあとの this.state を改めて読み直す
+    const settings = this.settings;
+    const state = this.state;
+    if (!ok || !state || !settings || state.phase === 'finished') {
+      return;
+    }
+    this.raceToken++; // 進行中のCPUの手番などを無効化する
+    const token = this.raceToken;
+
+    const loserIndex =
+      settings.opponent === 'cpu'
+        ? state.players.findIndex((p) => p.kind === 'human')
+        : state.turn;
+    const winnerIndex = 1 - loserIndex;
+    const loser = state.players[loserIndex];
+    const winner = state.players[winnerIndex];
+
+    this.state = finish(state, winnerIndex, 'retire');
+    await this.view.showMessage(
+      retireResultMessage(settings.opponent, loser, winner)
+    );
+    if (!this.isCurrent(token) || !this.state) return;
+    this.view.showResult(this.state.result!, this.state, settings.opponent);
   }
 
   /** 盤の点がクリック・タップで確定された */

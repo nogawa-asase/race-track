@@ -30,12 +30,15 @@ describe('createGame', () => {
     expect(state.turn).toBe(0);
   });
 
-  it('CPU戦でCPUが先攻なら、CPUが赤鉛筆', () => {
+  it('CPU戦でCPUが先攻でも、CPUはいつも青鉛筆(人が赤鉛筆)', () => {
     // When
     const state = createGame(settings, 'cpu');
 
     // Then
-    expect(state.players.map((p) => p.kind)).toEqual(['cpu', 'human']);
+    expect(state.players.map((p) => [p.kind, p.color])).toEqual([
+      ['cpu', 'blue'],
+      ['human', 'red'],
+    ]);
   });
 
   it('人同士なら2人とも人', () => {

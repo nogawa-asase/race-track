@@ -6,10 +6,11 @@ export interface ControlPanelCallbacks {
   onBackToSettings(): void;
   onShowRules(): void;
   onAutoZoom(): void;
+  onRetire(): void;
 }
 
 /**
- * 操作パネル(機能設計書「レース画面のレイアウト」)。手番・周回の表示と
+ * 操作パネル(機能設計書「レース画面のレイアウト」)。手番・ターンの表示と
  * ボタンをまとめる(候補・スタート位置は、いずれも盤に直接タップして
  * 選ぶため、パッドは持たない)
  */
@@ -42,19 +43,24 @@ export class ControlPanel {
     this.autoZoomButton.type = 'button';
     this.autoZoomButton.textContent = 'オートズーム';
     this.autoZoomButton.addEventListener('click', callbacks.onAutoZoom);
-    buttons.append(backButton, rulesButton, this.autoZoomButton);
+    const retireButton = document.createElement('button');
+    retireButton.type = 'button';
+    retireButton.className = 'retire-button';
+    retireButton.textContent = 'リタイヤ';
+    retireButton.addEventListener('click', callbacks.onRetire);
+    buttons.append(backButton, rulesButton, this.autoZoomButton, retireButton);
 
     this.container.append(this.turnEl, this.roundEl, buttons);
     container.append(this.container);
   }
 
-  /** 手番・周回の表示を更新する */
+  /** 手番・ターンの表示を更新する */
   render(state: GameState, opponent: 'cpu' | 'human'): void {
     const player = state.players[state.turn];
     this.turnEl.textContent = turnMessage(opponent, player.kind, player.color);
     this.turnEl.className = `turn-indicator color-${player.color}`;
-    this.roundEl.textContent = `周回: ${state.round}`;
-    // スタート位置選び中は周回がまだ始まっていない(常に0)ため、意味の
+    this.roundEl.textContent = `ターン: ${state.round}`;
+    // スタート位置選び中はターンがまだ始まっていない(常に0)ため、意味の
     // ない表示になる。レース中だけ見せる
     this.roundEl.hidden = state.phase !== 'racing';
     // オートズームはスマホ専用の機能のため、PCでは表示しない

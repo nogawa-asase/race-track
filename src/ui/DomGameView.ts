@@ -25,6 +25,7 @@ export interface DomGameViewCallbacks {
   onRetry(): void;
   onOpenRules(): void;
   onCloseRules(): void;
+  onRetire(): void;
 }
 
 /**
@@ -62,6 +63,7 @@ export class DomGameView implements GameView {
       onBackToSettings: callbacks.onBackToSettings,
       onShowRules: () => this.openRules(callbacks),
       onAutoZoom: () => this.board.resetToAutoFollow(),
+      onRetire: callbacks.onRetire,
     });
     this.resultScreen = new ResultScreen(this.raceScreen, {
       onRetry: callbacks.onRetry,

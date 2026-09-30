@@ -41,7 +41,7 @@ export interface PlayerState {
   readonly kind: 'human' | 'cpu';
   /** kind が 'cpu' のときだけ入る */
   readonly cpuLevel: CpuLevel | null;
-  /** 先攻 'red'、後攻 'blue' */
+  /** 人同士は先攻 'red'・後攻 'blue'。CPU戦は先攻後攻によらずCPUが常に 'blue' */
   readonly color: PenColor;
   /** スタート位置を選ぶまでは null */
   readonly position: Vec | null;
@@ -53,7 +53,7 @@ export interface PlayerState {
   readonly goalRound: number | null;
 }
 
-export type ResultReason = 'goal' | 'tieRule' | 'deadEnd';
+export type ResultReason = 'goal' | 'tieRule' | 'deadEnd' | 'retire';
 
 export interface GameResult {
   /** 勝ったプレイヤーの番号 */

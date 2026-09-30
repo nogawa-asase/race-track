@@ -78,6 +78,7 @@ const view = new DomGameView(app, {
   onRetry: () => void controllerRef.current!.retry(),
   onOpenRules: () => controllerRef.current!.pauseForRules(),
   onCloseRules: () => controllerRef.current!.resumeFromRules(),
+  onRetire: () => void controllerRef.current!.retire(),
 });
 
 controllerRef.current = new GameController(view);

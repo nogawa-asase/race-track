@@ -11,9 +11,11 @@ function reasonLabel(reason: ResultReason): string {
     case 'goal':
       return 'ゴール';
     case 'tieRule':
-      return '同着ルール(同じ周回でゴールしたため後攻の勝ち)';
+      return '同着ルール(同じターンでゴールしたため後攻の勝ち)';
     case 'deadEnd':
       return '行き止まり';
+    case 'retire':
+      return 'リタイヤ';
   }
 }
 
