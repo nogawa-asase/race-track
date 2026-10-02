@@ -46,18 +46,20 @@ export class ControlPanel {
     this.autoZoomButton = document.createElement('button');
     this.autoZoomButton.type = 'button';
     this.autoZoomButton.addEventListener('click', callbacks.onAutoZoom);
+    buttons.append(this.backButton, this.rulesButton, this.autoZoomButton);
+
+    // リタイヤは他のボタンと折り返しを共有せず、専用の行に右寄せで置く
+    // (同じ flex-wrap の行で margin-left: auto を使うと、折り返しの位置
+    // によって盤の幅からはみ出して見えることがあった)
+    const retireRow = document.createElement('div');
+    retireRow.className = 'retire-row';
     this.retireButton = document.createElement('button');
     this.retireButton.type = 'button';
     this.retireButton.className = 'retire-button';
     this.retireButton.addEventListener('click', callbacks.onRetire);
-    buttons.append(
-      this.backButton,
-      this.rulesButton,
-      this.autoZoomButton,
-      this.retireButton
-    );
+    retireRow.append(this.retireButton);
 
-    this.container.append(this.turnEl, this.roundEl, buttons);
+    this.container.append(this.turnEl, this.roundEl, buttons, retireRow);
     container.append(this.container);
 
     this.relabel();

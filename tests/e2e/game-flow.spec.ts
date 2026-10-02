@@ -311,6 +311,15 @@ test.describe('ルール説明(PRD「6-2. ルール説明」)', () => {
     await expect(page.locator('.rules-dialog')).toContainText('ゲームのルール');
     await expect(page.locator('.rules-dialog')).toContainText('ハンドル');
 
+    // Then: 慣性点の図(デザイン提供のSVG)が読み込めている
+    const diagram = page.locator('.rules-diagram');
+    await expect(diagram).toBeVisible();
+    await expect(diagram).toHaveJSProperty('complete', true);
+    const naturalWidth = await diagram.evaluate(
+      (img: HTMLImageElement) => img.naturalWidth
+    );
+    expect(naturalWidth).toBeGreaterThan(0);
+
     // When: 閉じる
     await page.click('.rules-dialog button:has-text("閉じる")');
 

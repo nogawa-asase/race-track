@@ -69,8 +69,28 @@ dialog button {
   margin: 0.75rem 0;
 }
 
+/*
+ * 太字の一言(リード文)+説明の組にする。リード文の直後の説明文は
+ * 間を詰め、リード文自体は前の組との間を少し空けて区切りを作る
+ */
+.rules-dialog .rules-lead {
+  margin-top: 1rem;
+  font-weight: 700;
+}
+
+.rules-dialog .rules-lead + p {
+  margin-top: 0.25rem;
+}
+
+.rules-dialog h2 + .rules-lead {
+  margin-top: 0.75rem;
+}
+
 .rules-dialog .rules-diagram {
   display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
   margin: 0.5rem auto;
 }
 

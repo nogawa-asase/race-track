@@ -54,5 +54,16 @@ test.describe('レイアウトの切り替え', () => {
     await expect(
       page.locator('.panel-buttons button:has-text("オートズーム")')
     ).toBeVisible();
+
+    // リタイヤは専用の行に分けて右寄せで置くため、折り返しても盤の幅を
+    // はみ出さない(以前は同じ行で margin-left: auto を使っていたため、
+    // 折り返しの位置によってはみ出すことがあった)
+    const [retireRight, boardRight] = await Promise.all([
+      page
+        .locator('.retire-button')
+        .evaluate((el) => el.getBoundingClientRect().right),
+      page.locator('.board').evaluate((el) => el.getBoundingClientRect().right),
+    ]);
+    expect(retireRight).toBeLessThanOrEqual(boardRight + 0.5);
   });
 });

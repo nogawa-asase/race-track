@@ -47,10 +47,17 @@
 
 /*
  * リタイヤは他のボタンと違い、その場でレースを終わらせる操作のため、
- * 画面の右下(このボタンの並びの右端)に離して置き、誤って他のボタンと
- * 押し間違えないよう色も変える
+ * 専用の行(.retire-row)に分けて画面の右下に置き、誤って他のボタンと
+ * 押し間違えないよう色も変える。盤の幅を超えないよう、ボタン自体も
+ * 折り返せるようにしておく(縦に短い画面でも読めるテキストが残るように)
  */
-.panel-buttons .retire-button {
-  margin-left: auto;
+.retire-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.retire-button {
+  max-width: 100%;
+  white-space: normal;
   background: var(--color-dangerous);
 }
