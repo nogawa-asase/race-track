@@ -12,6 +12,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "check:size": "tsx scripts/check-dist-size.ts",
+    "package:itch": "npm run build && tsx scripts/package-itch.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",

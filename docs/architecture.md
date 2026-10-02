@@ -235,7 +235,7 @@ PRDにない、このドキュメントで決める目標は次のとおり。
 | 項目 | 設定 |
 |------|------|
 | 種類 | HTML5 ゲーム(「This file will be played in the browser」) |
-| アップロードするもの | `dist/` の中身を zip にしたもの(zip の直下に `index.html`) |
+| アップロードするもの | `dist/` の中身を zip にしたもの(zip の直下に `index.html`)。`npm run package:itch` で `release/race-track-v[バージョン].zip` として作る(`scripts/package-itch.ts`) |
 | パス | Vite の `base: './'` で、すべてのファイルを相対パスで参照する |
 | 埋め込みサイズ | PC向けに 960 × 720 を目安とし、全画面ボタンを有効にする |
 | スマホ | 「Mobile friendly」を有効にする |

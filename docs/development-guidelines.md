@@ -420,7 +420,7 @@ t の範囲を 0 < t <= 1 にしてください。
 
 1. `main` で、`npm run lint`・`npm run typecheck`・`npm test`・`npm run test:sim`・`npm run test:e2e` がすべて通ることを確かめる
 2. `npm run build` で `dist/` を作り、`npm run preview` で PC とスマホ幅の表示を確かめる
-3. itch.io にアップロードする(zip の作り方と itch.io の設定は `docs/architecture.md` の「デプロイ(itch.io)」)
+3. `npm run package:itch` で `release/race-track-v[バージョン].zip` を作り、itch.io の管理画面(Edit game > Uploads)から手動でアップロードする(itch.io の設定は `docs/architecture.md` の「デプロイ(itch.io)」)
 4. `main` にバージョンのタグを付ける(例: `v0.1.0`)。最初の版(P0)を `v0.1.0` とし、P1の機能を足すたびにマイナーバージョンを上げる
 
 ## 開発環境

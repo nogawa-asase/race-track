@@ -24,7 +24,8 @@ race-track/
 │       └── styles/            #   CSS
 ├── scripts/                   # 開発用スクリプト
 │   ├── generate-tables.ts     # 最短手数の表をビルド前に生成する
-│   └── check-dist-size.ts     # ビルド結果の配信サイズを確認する
+│   ├── check-dist-size.ts     # ビルド結果の配信サイズを確認する
+│   └── package-itch.ts        # dist/ をitch.io用のzipにまとめる
 ├── public/                    # そのまま配信するファイル
 │   └── tables/                # 生成された表(gzip圧縮済み、Git管理外)
 ├── tests/                     # テストコード
@@ -235,6 +236,7 @@ ui/
 **配置ファイル**:
 - `generate-tables.ts`: `courses/` の各コースについて `domain/table/buildDistanceTable` で表を作り、gzip で圧縮して `public/tables/[コースID].bin.gz` に書き出す。コースごとの生成時間も表示する。`npm run build`・`npm run dev` の前に自動で実行される(`prebuild`・`predev`)
 - `check-dist-size.ts`: `dist/` の合計サイズを計算し、上限(`architecture.md` の「リソース使用量」)を超えたら失敗する。CIの build ジョブで実行する(`npm run check:size`)
+- `package-itch.ts`: `npm run build` のあと、`dist/` の中身を(`dist/` フォルダ自体は含めずに)`release/race-track-v[バージョン].zip` にまとめる。itch.io は zip 直下の `index.html` をゲームの入り口として扱うため、`dist/` の中に cd してから zip 化する。`npm run package:itch` で、ビルドからまとめて実行できる。`release/` は Git 管理外(`.gitignore`)
 
 **依存関係**:
 - 依存可能: `domain/`・`courses/`

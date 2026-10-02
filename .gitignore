@@ -12,6 +12,9 @@ dist/
 build/
 *.tsbuildinfo
 
+# itch.io 用にまとめた zip(npm run package:itch の出力)
+release/
+
 # Environment variables
 .env
 .env.local
