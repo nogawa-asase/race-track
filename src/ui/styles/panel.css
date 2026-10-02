@@ -64,3 +64,14 @@
 .retire-button {
   background: var(--color-dangerous);
 }
+
+/*
+ * 「オートズーム」が2行になるとき、既定の(どの文字の間でも折り返せる)
+ * 挙動だと「オートズー」「ム」のように単語の途中で折り返ることがあった。
+ * keep-all で明示的な区切り(U+200B。ControlPanel.ts 側で挿入)以外では
+ * 折り返さないようにし、「オート」「ズーム」の単語の境目で揃える
+ */
+.autozoom-button {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}

@@ -48,6 +48,7 @@ export class ControlPanel {
     this.rulesButton.addEventListener('click', callbacks.onShowRules);
     this.autoZoomButton = document.createElement('button');
     this.autoZoomButton.type = 'button';
+    this.autoZoomButton.className = 'autozoom-button';
     this.autoZoomButton.addEventListener('click', callbacks.onAutoZoom);
     this.retireButton = document.createElement('button');
     this.retireButton.type = 'button';
@@ -93,7 +94,10 @@ export class ControlPanel {
   private relabel(): void {
     this.backButton.textContent = pick('設定に戻る', 'Back to Settings');
     this.rulesButton.textContent = pick('ルール説明', 'How to play');
-    this.autoZoomButton.textContent = pick('オートズーム', 'Auto-zoom');
+    // 「オート」と「ズーム」の間に幅ゼロの区切り(U+200B)を入れ、
+    // CSSの word-break: keep-all と合わせて、2行になるときはこの位置
+    // (「オートズー」「ム」のような単語の途中ではなく)で折り返させる
+    this.autoZoomButton.textContent = pick('オート​ズーム', 'Auto-zoom');
     this.retireButton.textContent = pick('リタイヤ', 'Retire');
     if (this.latestState) {
       this.updateTurnDisplay(this.latestState, this.latestOpponent);

@@ -48,15 +48,22 @@ button:focus:not(:focus-visible) {
 }
 
 /*
- * 言語切り替えボタン(日本語⇔English)。画面の右上に固定し、設定画面・
- * レース画面のどちらからでも押せるようにする(ダイアログを開いている間は
- * ネイティブdialogのトップレイヤーの下に隠れるが、閉じればまた押せる)
+ * ロゴと言語切り替えボタンを同じ行に並べる。収まらない幅では
+ * ボタンだけ次の行へ折り返す(詳しくは main.ts のコメント参照)
  */
+.top-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 12px;
+}
+
+/* 言語切り替えボタン(日本語⇔English)。設定画面・レース画面のどちらからでも押せる */
 .lang-switch {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  z-index: 1;
+  flex-shrink: 0;
+  margin-top: 8px; /* ロゴ自身の margin-top(8px)と揃える */
   min-height: 36px;
   padding: 0 0.75rem;
   border: 3px solid var(--color-ink);

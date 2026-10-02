@@ -55,6 +55,13 @@ test.describe('レイアウトの切り替え', () => {
       page.locator('.panel-buttons button:has-text("オートズーム")')
     ).toBeVisible();
 
+    // 2行に折り返すときは「オート」「ズーム」の境目で折り返るよう、
+    // その間にだけ幅ゼロの区切り(U+200B)が入っている
+    const autozoomText = await page
+      .locator('.autozoom-button')
+      .evaluate((el) => el.textContent);
+    expect(autozoomText).toBe('オート​ズーム');
+
     // 4つのボタンは常に1行に収まり(flex: 1 1 0 で均等に縮む)、
     // 盤の幅をはみ出さない
     const [retireRight, boardRight] = await Promise.all([
@@ -64,5 +71,28 @@ test.describe('レイアウトの切り替え', () => {
       page.locator('.board').evaluate((el) => el.getBoundingClientRect().right),
     ]);
     expect(retireRight).toBeLessThanOrEqual(boardRight + 0.5);
+  });
+
+  test('幅375px(スマホ)では、言語切り替えボタンがロゴに重ならない', async ({
+    page,
+  }) => {
+    // Given: 実機(iPhone相当)で、ロゴの右側にボタンが重なって見える
+    // 不具合があった(position: fixed で画面右上に固定していたため)
+    await page.setViewportSize({ width: 375, height: 700 });
+    await page.goto('./');
+    await page.waitForSelector('.settings-screen');
+
+    // When
+    const [logo, button] = await Promise.all([
+      page.locator('.app-logo').evaluate((el) => el.getBoundingClientRect()),
+      page.locator('.lang-switch').evaluate((el) => el.getBoundingClientRect()),
+    ]);
+
+    // Then: 矩形が重ならない
+    const overlapsHorizontally =
+      logo.left < button.right && button.left < logo.right;
+    const overlapsVertically =
+      logo.top < button.bottom && button.top < logo.bottom;
+    expect(overlapsHorizontally && overlapsVertically).toBe(false);
   });
 });

@@ -58,11 +58,16 @@ document.addEventListener(
 /*
  * ロゴは言語が変わるたびに差し替える(日本語版「レーストラック」・
  * 英語版「RACE TRACK」で、文字も枠の大きさも別物のため、文言だけの
- * 差し替えでは済まない)。言語切り替えボタンは画面の同じ場所(右上)に
- * 常に置き、設定画面・レース画面のどちらからでも押せるようにする
+ * 差し替えでは済まない)。言語切り替えボタンは、ロゴとは別に
+ * position: fixed で右上に固定していたが、画面幅によってはロゴの
+ * 右側に重なって見えることがあったため、ロゴと同じ行(.top-bar)に
+ * 並べ、収まらない幅ではボタンだけ次の行に折り返すようにする
  */
+const topBar = document.createElement('div');
+topBar.className = 'top-bar';
 let logoEl: HTMLElement = getLang() === 'ja' ? renderLogo() : renderLogoEn();
-app.append(logoEl, renderLanguageSwitch());
+topBar.append(logoEl, renderLanguageSwitch());
+app.append(topBar);
 
 onLangChange((lang) => {
   const nextLogo = lang === 'ja' ? renderLogo() : renderLogoEn();

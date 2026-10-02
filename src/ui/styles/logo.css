@@ -4,7 +4,9 @@
   position: relative;
   width: 288px;
   height: 86.4px;
-  margin: 8px auto 1rem;
+  /* 横方向は親の .top-bar (justify-content: center) が中央寄せするため、
+     ここでは上下の間隔だけを持つ */
+  margin: 8px 0 1rem;
   border: 3px solid var(--color-ink);
   border-radius: 12px;
   box-shadow: 3px 3px 0 var(--color-ink);
