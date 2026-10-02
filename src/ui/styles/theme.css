@@ -48,13 +48,13 @@ button:focus:not(:focus-visible) {
 }
 
 /*
- * ロゴと言語切り替えボタンを同じ行に並べる。収まらない幅では
- * ボタンだけ次の行へ折り返す(詳しくは main.ts のコメント参照)
+ * ロゴと言語切り替えボタンを同じ行に並べ、下辺を揃える。幅が狭い画面でも
+ * 折り返さず収まるよう、ロゴ側を縮める(詳しくは logo.css のコメント参照)
  */
 .top-bar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  flex-wrap: nowrap;
+  align-items: flex-end;
   justify-content: center;
   gap: 0.5rem;
   padding: 0 12px;
@@ -63,7 +63,7 @@ button:focus:not(:focus-visible) {
 /* 言語切り替えボタン(日本語⇔English)。設定画面・レース画面のどちらからでも押せる */
 .lang-switch {
   flex-shrink: 0;
-  margin-top: 8px; /* ロゴ自身の margin-top(8px)と揃える */
+  margin-bottom: 1rem; /* ロゴ自身の margin-bottom(1rem)と揃え、下辺を揃える */
   min-height: 36px;
   padding: 0 0.75rem;
   border: 3px solid var(--color-ink);

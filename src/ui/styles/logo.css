@@ -16,6 +16,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* .top-bar の幅が足りないときにブラウザが自動で縮めてしまうと、内側の
+     文字(px固定サイズ)が枠からはみ出して見える。縮小するかどうかは
+     下の @media だけで明示的に決め、ここでは縮まないようにする */
+  flex-shrink: 0;
 }
 
 /*
@@ -85,4 +89,49 @@
 
 .app-logo-en .app-logo-text {
   font-size: 32.4px;
+}
+
+/*
+ * 幅の狭い画面(最小対応幅360px)では、ロゴと言語切り替えボタンを
+ * 同じ行に並べたまま収めるため、ロゴを縮小する(枠・文字・道の帯・
+ * 方眼すべてを同じ比率で縮める)。英語版(RACE TRACK)は元の幅が広い分、
+ * より縮める比率を大きくする。比率は、幅360pxでボタンと並べても
+ * 余裕を持って収まる値から決めている
+ */
+@media (max-width: 480px) {
+  .app-logo {
+    width: 236.2px; /* 288px x 0.82 */
+    height: 70.8px; /* 86.4px x 0.82 */
+  }
+
+  .app-logo .app-logo-road {
+    top: 11.8px; /* 14.4px x 0.82 */
+    height: 47.2px; /* 57.6px x 0.82 */
+  }
+
+  .app-logo .app-logo-grid {
+    background-size: 11.8px 11.8px;
+  }
+
+  .app-logo .app-logo-text {
+    font-size: 29.5px; /* 36px x 0.82 */
+  }
+
+  .app-logo-en {
+    width: 241.9px; /* 345.6px x 0.7 */
+    height: 60.5px; /* 86.4px x 0.7 */
+  }
+
+  .app-logo-en .app-logo-road {
+    top: 10.1px; /* 14.4px x 0.7 */
+    height: 40.3px; /* 57.6px x 0.7 */
+  }
+
+  .app-logo-en .app-logo-grid {
+    background-size: 10.1px 10.1px;
+  }
+
+  .app-logo-en .app-logo-text {
+    font-size: 22.7px; /* 32.4px x 0.7 */
+  }
 }

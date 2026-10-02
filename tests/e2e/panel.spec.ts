@@ -73,26 +73,40 @@ test.describe('レイアウトの切り替え', () => {
     expect(retireRight).toBeLessThanOrEqual(boardRight + 0.5);
   });
 
-  test('幅375px(スマホ)では、言語切り替えボタンがロゴに重ならない', async ({
+  test('幅360px(最小対応幅)でも、ロゴと言語切り替えボタンが折り返さず同じ行に並び、下辺が揃う', async ({
     page,
   }) => {
-    // Given: 実機(iPhone相当)で、ロゴの右側にボタンが重なって見える
-    // 不具合があった(position: fixed で画面右上に固定していたため)
-    await page.setViewportSize({ width: 375, height: 700 });
+    // Given: 実機(iPhone相当)で、ロゴの右側にボタンが重なって見える不具合が
+    // あった(position: fixed で画面右上に固定していたため)。その後、同じ行に
+    // 並べたところ、今度はボタンだけ次の行に折り返す見た目になってしまった。
+    // ロゴを縮小してでも同じ行に収め、下辺を揃えるのが今の仕様
+    await page.setViewportSize({ width: 360, height: 700 });
     await page.goto('./');
     await page.waitForSelector('.settings-screen');
 
-    // When
-    const [logo, button] = await Promise.all([
-      page.locator('.app-logo').evaluate((el) => el.getBoundingClientRect()),
-      page.locator('.lang-switch').evaluate((el) => el.getBoundingClientRect()),
-    ]);
+    // When/Then: 日本語表示・英語表示のどちらでも、重ならず・横スクロールも
+    // 出さず・ロゴとボタンの下辺が揃う
+    for (const lang of ['ja', 'en'] as const) {
+      if (lang === 'en') {
+        await page.click('.lang-switch');
+      }
 
-    // Then: 矩形が重ならない
-    const overlapsHorizontally =
-      logo.left < button.right && button.left < logo.right;
-    const overlapsVertically =
-      logo.top < button.bottom && button.top < logo.bottom;
-    expect(overlapsHorizontally && overlapsVertically).toBe(false);
+      const [logo, button, scrollWidth] = await Promise.all([
+        page.locator('.app-logo').evaluate((el) => el.getBoundingClientRect()),
+        page
+          .locator('.lang-switch')
+          .evaluate((el) => el.getBoundingClientRect()),
+        page.evaluate(() => document.documentElement.scrollWidth),
+      ]);
+
+      const overlapsHorizontally =
+        logo.left < button.right && button.left < logo.right;
+      const overlapsVertically =
+        logo.top < button.bottom && button.top < logo.bottom;
+      expect(overlapsHorizontally && overlapsVertically).toBe(false);
+
+      expect(Math.abs(logo.bottom - button.bottom)).toBeLessThan(1);
+      expect(scrollWidth).toBeLessThanOrEqual(360);
+    }
   });
 });
