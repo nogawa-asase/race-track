@@ -154,7 +154,8 @@ courses/
 - `GameView.ts`: UI層が実装する `GameView` インターフェース(アプリケーション層が必要とする画面の操作を、ここで定める)
 - `loadTable.ts`: 表のファイルを相対パスで読み込み、`DecompressionStream('gzip')` で展開し、サイズを検証して `DistanceTable` にする
 - `history.ts`: P1の「1手戻す」の履歴
-- `messages.ts`: 画面に出す文言(機能設計書の「メッセージ」)をまとめたもの
+- `messages.ts`: 画面に出す文言(機能設計書の「メッセージ」)をまとめたもの。各関数は呼ばれるたびに `i18n.ts` の `pick()` で今の表示言語を見る
+- `i18n.ts`: 表示言語(日本語・英語)の状態管理(機能設計書「言語切り替え」)。`getLang`・`setLang`・`onLangChange`・`pick`
 - 本番用の `Random`(`Math.random` をそのまま使う実装)は `GameController.ts` に置く。`domain/cpu/random.ts` は `Random` インターフェースと、テスト・シミュレーション用の疑似乱数だけを持ち、`Math.random` を呼ばない(ESLint がドメイン層での使用を禁止しているため)
 
 **命名規則**:
@@ -171,6 +172,9 @@ courses/
 
 **配置ファイル**:
 - `DomGameView.ts`: `GameView` の実装。下の部品を組み合わせる
+- `Logo.ts`: ロゴ(日本語版・英語版)
+- `LanguageSwitch.ts`: 言語切り替えボタン(機能設計書「言語切り替え」)
+- `layout.ts`: 画面幅・向きから、スマホ相当のレイアウトかどうかを判定する(オートズームの既定に使う)
 - `board/`: 盤の描画
 - `panel/`: 操作パネル
 - `screens/`: 設定画面・結果画面
@@ -178,28 +182,32 @@ courses/
 - `styles/`: CSS
 
 **命名規則**:
-- 画面の部品(クラス)のファイルは PascalCase(例: `BoardView.ts`、`DirectionPad.ts`)
+- 画面の部品(クラス)のファイルは PascalCase(例: `BoardView.ts`、`ControlPanel.ts`)
+- 関数だけのファイルは camelCase(例: `layout.ts`)
 - CSS は kebab-case(例: `board.css`、`theme.css`)
 
 **依存関係**:
-- 依存可能: `app/`(`GameView` インターフェースと `GameController` の公開メソッド)、`domain/` の型と純粋関数
+- 依存可能: `app/`(`GameView` インターフェースと `GameController` の公開メソッド、`messages.ts`、`i18n.ts`)、`domain/` の型と純粋関数
 - 依存禁止: ゲームの状態を直接書き換えること(状態の変更は `GameController` を通す)
 
 **例**:
 ```
 ui/
 ├── DomGameView.ts
+├── Logo.ts                    # ロゴ(renderLogo/renderLogoEn)
+├── LanguageSwitch.ts           # 言語切り替えボタン
+├── layout.ts                   # isMobileLayout()
 ├── board/
 │   ├── BoardView.ts           # SVG全体の管理と、変わらない層・変わる層の分離
 │   ├── constants.ts           # 盤の余白、座標の表示用変換、パスのSVG化、アニメーション等の時間
+│   ├── camera.ts               # ズーム・追従(オートズーム)のカメラ計算
+│   ├── pinchZoom.ts            # 盤専用のピンチズーム・パン
 │   ├── staticLayer.ts         # 芝・方眼・コース・スタートライン・ゴールライン
 │   ├── trailLayer.ts          # 軌跡と車
-│   ├── candidateLayer.ts      # 慣性点・9候補・プレビュー
-│   └── boardInput.ts          # クリック・タップの2段階の確定
+│   ├── candidateLayer.ts      # 慣性点・9候補の描画
+│   └── boardInput.ts          # 盤への直接クリック・タップの確定
 ├── panel/
-│   ├── ControlPanel.ts        # 手番・周回・ボタン、DirectionPad/StartPositionPadの切り替え
-│   ├── DirectionPad.ts        # レース中、3×3の方向パッド
-│   └── StartPositionPad.ts    # スタート位置選び中、←/決定/→のパッド
+│   └── ControlPanel.ts        # 手番・ターンの表示とボタン(設定に戻る・ルール説明・オートズーム・リタイヤ)
 ├── screens/
 │   ├── SettingsScreen.ts
 │   └── ResultScreen.ts
@@ -208,8 +216,9 @@ ui/
 │   ├── MessageDialog.ts
 │   └── RulesDialog.ts
 └── styles/
-    ├── theme.css              # 色のCSS変数(P1のダークモードもここ)
-    ├── layout.css             # PC(横並び)とスマホ(縦並び)の切り替え
+    ├── theme.css              # 色のCSS変数(P1のダークモードもここ)、言語切り替えボタン
+    ├── layout.css             # レース画面のレイアウト(盤の下に操作パネル)
+    ├── logo.css
     ├── board.css
     ├── panel.css
     ├── screens.css            # 設定画面・結果画面

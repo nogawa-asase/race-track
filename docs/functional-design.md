@@ -88,8 +88,10 @@ interface Segment {
 interface CourseDefinition {
   id: CourseId;            // 'hairpin' | 'crank' | 'spiral'
   name: string;            // 表示名: 'ヘアピン' など
+  nameEn: string;          // 表示名の英語版: 'Hairpin' など
   difficulty: Difficulty;  // 'easy' | 'normal' | 'hard'
   description: string;     // 設定画面に出す特徴: '幅広。大きなヘアピンが2つ' など
+  descriptionEn: string;   // description の英語版
   boardSize: Vec;          // 盤の格子点の数(値は architecture.md で定める)
   centerline: Vec[];       // 中心線の折れ線の頂点(スタート側から順に。2点以上)
   filletRadius: number;    // 折れ線の角を丸める円弧の半径(目盛り)
@@ -830,6 +832,26 @@ CSS transform(拡大縮小・平行移動)をかけることで、ズーム・�
 | 軌跡の手数番号 | 表示しない | 軌跡の描画で、`trail` の各点(スタート位置を0として)の添字を、その点の近くに小さな文字で描く |
 | 拡大表示(スマホ向け) | オフ | 盤のSVGの `viewBox` を、手番の車の位置と9候補が収まる範囲(おおよそ慣性点を中心に一辺15目盛り程度)に合わせる。手番が移るたびに `viewBox` を動かす。盤の描画内容は変えない |
 | ダークモード | 端末の設定に従う | 上の「カラーコーディング」のCSS変数の値を切り替える |
+
+### 言語切り替え(日本語・英語)(PRD「11. 言語切り替え」)
+
+`src/app/i18n.ts` が、保存しない(設定と同じく、開き直すと日本語に戻る)
+モジュール単位の状態として言語を持つ。
+
+```typescript
+type Lang = 'ja' | 'en';
+function getLang(): Lang;                              // 今の言語
+function setLang(lang: Lang): void;                     // 切り替える(実際に変わったときだけ、登録した関数すべてに知らせる)
+function onLangChange(listener: (lang: Lang) => void): () => void; // 変わるたびに呼ばれる。返り値で登録解除できる
+function pick<T>(ja: T, en: T): T;                      // 今の言語に応じて ja/en のどちらかを返す
+```
+
+- **動的な文言**(`app/messages.ts` の各関数。手番・結果などプレイヤーの色や種類で変わる文)は、呼ばれるたびに `pick()` で今の言語を見るだけでよい。`DEAD_END_WARNING` などの定数だった表示文言は、呼び出しのたびに評価されるよう関数(`deadEndWarning()` など)にしてある
+- **静的な文言**(設定画面の項目名・選択肢、操作パネル・ダイアログ・結果画面のボタン、ルール説明の文章)を持つ画面の部品は、`onLangChange` を自分のコンストラクタで登録し、呼ばれたら今表示している内容を保ったまま(`<select>` の選択値、確認・結果の表示中の内容など)文言だけを差し替える`relabel()` を持つ
+- **コース名・説明**は `CourseDefinition` に `nameEn`・`descriptionEn` を追加し、設定画面がコースの一覧を作るときに `pick()` で選ぶ
+- **ロゴ**は `renderLogo()`(日本語「レーストラック」)と `renderLogoEn()`(英語「RACE TRACK」、文字数が多いぶん枠を広げ文字を縮めてある)が別々の見た目を持つため、文言の差し替えでは済まない。`main.ts` が `onLangChange` で要素ごと差し替える
+- **切り替えボタン**(`src/ui/LanguageSwitch.ts`)は、画面右上に固定表示(`position: fixed`)し、設定画面・レース画面のどちらからでも押せる。ボタンには「切り替えた先」の言語名を表示する(今が日本語なら「English」、今が英語なら「日本語」)
+- `<html lang>` 属性とページタイトルも、切り替えるたびに `main.ts` が更新する
 
 ### アニメーション
 
