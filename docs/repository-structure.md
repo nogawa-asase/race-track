@@ -214,7 +214,10 @@ ui/
 ├── dialogs/
 │   ├── ConfirmDialog.ts
 │   ├── MessageDialog.ts
-│   └── RulesDialog.ts
+│   └── RulesDialog.ts         # 慣性点の図は assets/ のSVGを <img> で表示する(プログラム描画ではない)
+├── assets/
+│   ├── rule-figure-candidates.svg     # 慣性点の図(日本語版。デザイン提供)
+│   └── rule-figure-candidates-en.svg  # 同、英語版
 └── styles/
     ├── theme.css              # 色のCSS変数(P1のダークモードもここ)、言語切り替えボタン
     ├── layout.css             # レース画面のレイアウト(盤の下に操作パネル)
