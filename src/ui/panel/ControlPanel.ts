@@ -35,6 +35,9 @@ export class ControlPanel {
     this.roundEl = document.createElement('p');
     this.roundEl.className = 'round-indicator';
 
+    // 4つとも同じ1行に収める。盤の幅をはみ出さないよう、ボタンは
+    // flex: 1 1 0 で均等に縮み、必要なら文字を2行に折り返す
+    // (文字を省略〔…〕しない)
     const buttons = document.createElement('div');
     buttons.className = 'panel-buttons';
     this.backButton = document.createElement('button');
@@ -46,20 +49,18 @@ export class ControlPanel {
     this.autoZoomButton = document.createElement('button');
     this.autoZoomButton.type = 'button';
     this.autoZoomButton.addEventListener('click', callbacks.onAutoZoom);
-    buttons.append(this.backButton, this.rulesButton, this.autoZoomButton);
-
-    // リタイヤは他のボタンと折り返しを共有せず、専用の行に右寄せで置く
-    // (同じ flex-wrap の行で margin-left: auto を使うと、折り返しの位置
-    // によって盤の幅からはみ出して見えることがあった)
-    const retireRow = document.createElement('div');
-    retireRow.className = 'retire-row';
     this.retireButton = document.createElement('button');
     this.retireButton.type = 'button';
     this.retireButton.className = 'retire-button';
     this.retireButton.addEventListener('click', callbacks.onRetire);
-    retireRow.append(this.retireButton);
+    buttons.append(
+      this.backButton,
+      this.rulesButton,
+      this.autoZoomButton,
+      this.retireButton
+    );
 
-    this.container.append(this.turnEl, this.roundEl, buttons, retireRow);
+    this.container.append(this.turnEl, this.roundEl, buttons);
     container.append(this.container);
 
     this.relabel();

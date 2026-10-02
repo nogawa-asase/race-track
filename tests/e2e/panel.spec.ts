@@ -55,9 +55,8 @@ test.describe('レイアウトの切り替え', () => {
       page.locator('.panel-buttons button:has-text("オートズーム")')
     ).toBeVisible();
 
-    // リタイヤは専用の行に分けて右寄せで置くため、折り返しても盤の幅を
-    // はみ出さない(以前は同じ行で margin-left: auto を使っていたため、
-    // 折り返しの位置によってはみ出すことがあった)
+    // 4つのボタンは常に1行に収まり(flex: 1 1 0 で均等に縮む)、
+    // 盤の幅をはみ出さない
     const [retireRight, boardRight] = await Promise.all([
       page
         .locator('.retire-button')
