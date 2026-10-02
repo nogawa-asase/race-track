@@ -55,8 +55,18 @@ dialog button {
   overflow: hidden;
 }
 
+/*
+ * dialog は box-sizing: border-box なので、dialog 自身の max-height(80vh)には
+ * 上下の border(3px×2)も含まれる。ここで padding しか引いていないと、
+ * スクロールを一番下まで送ったときに「閉じる」ボタンの下側(枠・影)が
+ * border の分(6px)だけ dialog の overflow: hidden に切り取られて見切れる。
+ * border ぶんも引いたうえで、box-sizing: border-box + padding-bottom で
+ * 最後に少し余白を持たせ、文字の描画のわずかな誤差でも見切れないようにする
+ */
 .rules-dialog-body {
-  max-height: calc(80vh - 2.5rem); /* dialog の上下 padding(1.25rem×2)ぶんを引く */
+  box-sizing: border-box;
+  max-height: calc(80vh - 2.5rem - 6px);
+  padding-bottom: 0.75rem;
   overflow-y: auto;
 }
 

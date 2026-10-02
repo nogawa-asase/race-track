@@ -327,6 +327,40 @@ test.describe('ルール説明(PRD「6-2. ルール説明」)', () => {
     await expect(page.locator('.rules-dialog[open]')).toHaveCount(0);
   });
 
+  test('画面の高さが低いとき、スクロールしても「閉じる」ボタンが見切れない', async ({
+    page,
+  }) => {
+    // Given: 文章が1画面に収まらず、ダイアログ内で縦スクロールが必要になる
+    // 低い画面(dialog の上下 padding・border の計算間違いで、スクロールを
+    // 一番下まで送ると「閉じる」ボタンの下側が数px切り取られる不具合があった)
+    await page.setViewportSize({ width: 390, height: 500 });
+    await page.goto('./');
+    await page.waitForSelector('.settings-screen');
+    await page.click('.settings-screen button:has-text("ルール説明")');
+    await page.waitForSelector('.rules-dialog[open]');
+
+    // When: ダイアログ内を一番下までスクロールする
+    await page
+      .locator('.rules-dialog-body')
+      .evaluate((el) => (el.scrollTop = el.scrollHeight));
+
+    // Then: 「閉じる」ボタンの下端が、見える範囲(.rules-dialog-body の下端)
+    // より上にある(切り取られていない)
+    const [bodyBottom, buttonBottom] = await Promise.all([
+      page
+        .locator('.rules-dialog-body')
+        .evaluate((el) => el.getBoundingClientRect().bottom),
+      page
+        .locator('.rules-dialog button')
+        .evaluate((el) => el.getBoundingClientRect().bottom),
+    ]);
+    expect(buttonBottom).toBeLessThanOrEqual(bodyBottom);
+
+    // Then: 実際に押せる(見切れて掴めない状態になっていない)
+    await page.click('.rules-dialog button:has-text("閉じる")');
+    await expect(page.locator('.rules-dialog[open]')).toHaveCount(0);
+  });
+
   test('レース画面から開けて、開いている間はCPUの手番が進まず、閉じると再開する', async ({
     page,
   }) => {
