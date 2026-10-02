@@ -8,8 +8,10 @@ import type { CourseDefinition } from '../domain/course/types';
 export const hairpin: CourseDefinition = {
   id: 'hairpin',
   name: 'ヘアピン',
+  nameEn: 'Hairpin',
   difficulty: 'easy',
   description: '幅広。大きなヘアピンが2つ',
+  descriptionEn: 'Wide road with two big hairpin turns',
   boardSize: { x: 33, y: 33 },
   centerline: [
     { x: 4, y: 5 },

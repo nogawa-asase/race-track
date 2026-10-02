@@ -1,3 +1,4 @@
+import { afterEach } from 'vitest';
 import {
   deadEndResultMessage,
   lotteryMessage,
@@ -5,6 +6,7 @@ import {
   tieRulePendingMessage,
   turnMessage,
 } from '../../../src/app/messages';
+import { setLang } from '../../../src/app/i18n';
 
 describe('messages', () => {
   it('人の手番(CPU戦)', () => {
@@ -63,5 +65,37 @@ describe('messages', () => {
         { kind: 'human', color: 'blue' }
       )
     ).toBe('赤がゴール! 青がこの手でゴールすれば、同着ルールで青の勝ちです');
+  });
+
+  describe('英語(setLang("en"))', () => {
+    afterEach(() => {
+      setLang('ja');
+    });
+
+    it('人の手番(CPU戦)', () => {
+      setLang('en');
+      expect(turnMessage('cpu', 'human', 'red')).toBe('Your turn (Red)');
+    });
+
+    it('CPUの手番', () => {
+      setLang('en');
+      expect(thinkingMessage('blue')).toBe('CPU (Blue) is thinking…');
+    });
+
+    it('おまかせの結果(CPU戦、CPUが先攻)', () => {
+      setLang('en');
+      expect(lotteryMessage('cpu', 'cpu', 'red')).toBe('CPU goes first');
+    });
+
+    it('行き止まりで負け(CPU戦)', () => {
+      setLang('en');
+      expect(
+        deadEndResultMessage(
+          'cpu',
+          { kind: 'human', color: 'red' },
+          { kind: 'cpu', color: 'blue' }
+        )
+      ).toBe("You (Red) can't move anywhere. CPU (Blue) wins!");
+    });
   });
 });

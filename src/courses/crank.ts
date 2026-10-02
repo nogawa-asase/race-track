@@ -11,8 +11,10 @@ import type { CourseDefinition } from '../domain/course/types';
 export const crank: CourseDefinition = {
   id: 'crank',
   name: 'クランク',
+  nameEn: 'Crank',
   difficulty: 'normal',
   description: '直角カーブの切り返しが続く',
+  descriptionEn: 'A series of sharp right-angle switchbacks',
   boardSize: { x: 33, y: 33 },
   centerline: [
     { x: 4, y: 29 },

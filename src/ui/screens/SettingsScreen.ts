@@ -1,4 +1,5 @@
 import { COURSES } from '../../courses';
+import { onLangChange, pick } from '../../app/i18n';
 import type { CpuLevel, GameSettings, TurnOrder } from '../../domain/types';
 
 export interface SettingsScreenCallbacks {
@@ -16,63 +17,72 @@ export class SettingsScreen {
   private readonly turnOrderField: HTMLElement;
   private readonly turnOrderSelect: HTMLSelectElement;
   private readonly alertCheckbox: HTMLInputElement;
+  private readonly opponentLabel: HTMLElement;
+  private readonly courseLabel: HTMLElement;
+  private readonly cpuLevelLabel: HTMLElement;
+  private readonly turnOrderLabel: HTMLElement;
+  private readonly alertLabel: HTMLElement;
+  private readonly startButton: HTMLButtonElement;
+  private readonly rulesButton: HTMLButtonElement;
 
   constructor(container: HTMLElement, callbacks: SettingsScreenCallbacks) {
     this.container = document.createElement('div');
     this.container.className = 'settings-screen';
 
     this.opponentSelect = this.buildSelect('opponent', [
-      { value: 'cpu', label: 'CPU(青)' },
-      { value: 'human', label: '人' },
+      { value: 'cpu' },
+      { value: 'human' },
     ]);
     this.courseSelect = this.buildSelect(
       'course',
-      COURSES.map((c) => ({
-        value: c.id,
-        label: `${c.name}(${difficultyLabel(c.difficulty)}): ${c.description}`,
-      }))
+      COURSES.map((c) => ({ value: c.id }))
     );
     this.cpuLevelSelect = this.buildSelect('cpuLevel', [
-      { value: 'weak', label: 'よわい' },
-      { value: 'normal', label: 'ふつう' },
-      { value: 'strong', label: 'つよい' },
+      { value: 'weak' },
+      { value: 'normal' },
+      { value: 'strong' },
     ]);
     this.turnOrderSelect = this.buildSelect('turnOrder', [
-      { value: 'lottery', label: 'おまかせ' },
-      { value: 'first', label: '先攻: 相手よりも先にスタートできて有利' },
-      { value: 'second', label: '後攻: 同着なら後攻が勝ち' },
+      { value: 'lottery' },
+      { value: 'first' },
+      { value: 'second' },
     ]);
     this.alertCheckbox = document.createElement('input');
     this.alertCheckbox.type = 'checkbox';
     this.alertCheckbox.id = 'alert';
 
-    const opponentField = this.field('対戦相手', this.opponentSelect);
-    const courseField = this.field('コース', this.courseSelect);
-    this.cpuLevelField = this.field('CPUの強さ', this.cpuLevelSelect);
-    this.turnOrderField = this.field('先攻後攻', this.turnOrderSelect);
-    const alertField = this.field('行き止まりのアラート', this.alertCheckbox);
-    alertField.classList.add('field-checkbox');
+    const opponentField = this.field(this.opponentSelect);
+    this.opponentLabel = opponentField.label;
+    const courseField = this.field(this.courseSelect);
+    this.courseLabel = courseField.label;
+    const cpuLevelField = this.field(this.cpuLevelSelect);
+    this.cpuLevelField = cpuLevelField.wrapper;
+    this.cpuLevelLabel = cpuLevelField.label;
+    const turnOrderField = this.field(this.turnOrderSelect);
+    this.turnOrderField = turnOrderField.wrapper;
+    this.turnOrderLabel = turnOrderField.label;
+    const alertField = this.field(this.alertCheckbox);
+    this.alertLabel = alertField.label;
+    alertField.wrapper.classList.add('field-checkbox');
 
-    const startButton = document.createElement('button');
-    startButton.type = 'button';
-    startButton.textContent = 'スタート';
-    startButton.addEventListener('click', () =>
+    this.startButton = document.createElement('button');
+    this.startButton.type = 'button';
+    this.startButton.addEventListener('click', () =>
       callbacks.onStart(this.currentSettings())
     );
-    const rulesButton = document.createElement('button');
-    rulesButton.type = 'button';
-    rulesButton.textContent = 'ルール説明';
-    rulesButton.addEventListener('click', callbacks.onShowRules);
+    this.rulesButton = document.createElement('button');
+    this.rulesButton.type = 'button';
+    this.rulesButton.addEventListener('click', callbacks.onShowRules);
     const buttons = document.createElement('div');
     buttons.className = 'buttons';
-    buttons.append(startButton, rulesButton);
+    buttons.append(this.startButton, this.rulesButton);
 
     this.container.append(
-      opponentField,
-      courseField,
+      opponentField.wrapper,
+      courseField.wrapper,
       this.cpuLevelField,
       this.turnOrderField,
-      alertField,
+      alertField.wrapper,
       buttons
     );
     container.append(this.container);
@@ -80,6 +90,9 @@ export class SettingsScreen {
     this.opponentSelect.addEventListener('change', () =>
       this.updateVisibility()
     );
+
+    this.relabel();
+    onLangChange(() => this.relabel());
   }
 
   /** 設定画面を、既定値で表示する */
@@ -113,31 +126,92 @@ export class SettingsScreen {
     this.turnOrderField.hidden = !isCpu;
   }
 
+  /** 表示言語が変わるたびに、選択は保ったまま文言だけ差し替える */
+  private relabel(): void {
+    this.opponentLabel.textContent = pick('対戦相手', 'Opponent');
+    this.courseLabel.textContent = pick('コース', 'Course');
+    this.cpuLevelLabel.textContent = pick('CPUの強さ', 'CPU strength');
+    this.turnOrderLabel.textContent = pick('先攻後攻', 'Turn order');
+    this.alertLabel.textContent = pick(
+      '行き止まりのアラート',
+      'Dead-end alert'
+    );
+    this.startButton.textContent = pick('スタート', 'Start');
+    this.rulesButton.textContent = pick('ルール説明', 'How to play');
+
+    relabelOptions(this.opponentSelect, {
+      cpu: pick('CPU(青)', 'CPU (Blue)'),
+      human: pick('人', 'Human'),
+    });
+    relabelOptions(
+      this.courseSelect,
+      Object.fromEntries(
+        COURSES.map((c) => [
+          c.id,
+          `${pick(c.name, c.nameEn)}(${difficultyLabel(c.difficulty)}): ${pick(c.description, c.descriptionEn)}`,
+        ])
+      )
+    );
+    relabelOptions(this.cpuLevelSelect, {
+      weak: pick('よわい', 'Weak'),
+      normal: pick('ふつう', 'Normal'),
+      strong: pick('つよい', 'Strong'),
+    });
+    relabelOptions(this.turnOrderSelect, {
+      lottery: pick('おまかせ', 'Random'),
+      first: pick(
+        '先攻: 相手よりも先にスタートできて有利',
+        'Go first: an advantage — you start before your opponent'
+      ),
+      second: pick(
+        '後攻: 同着なら後攻が勝ち',
+        'Go second: wins ties against the first player'
+      ),
+    });
+  }
+
   private buildSelect(
     name: string,
-    options: readonly { value: string; label: string }[]
+    options: readonly { value: string }[]
   ): HTMLSelectElement {
     const select = document.createElement('select');
     select.name = name;
-    for (const { value, label } of options) {
+    for (const { value } of options) {
       const option = document.createElement('option');
       option.value = value;
-      option.textContent = label;
       select.append(option);
     }
     return select;
   }
 
-  private field(label: string, control: HTMLElement): HTMLElement {
+  private field(control: HTMLElement): {
+    wrapper: HTMLElement;
+    label: HTMLElement;
+  } {
     const wrapper = document.createElement('label');
     wrapper.className = 'field';
     const span = document.createElement('span');
-    span.textContent = label;
     wrapper.append(span, control);
-    return wrapper;
+    return { wrapper, label: span };
+  }
+}
+
+/** select の中身(option)を、value をキーにした文言の対応表で差し替える */
+function relabelOptions(
+  select: HTMLSelectElement,
+  labels: Record<string, string>
+): void {
+  for (const option of Array.from(select.options)) {
+    const label = labels[option.value];
+    if (label !== undefined) {
+      option.textContent = label;
+    }
   }
 }
 
 function difficultyLabel(difficulty: 'easy' | 'normal' | 'hard'): string {
-  return { easy: 'やさしい', normal: 'ふつう', hard: 'むずかしい' }[difficulty];
+  return pick(
+    { easy: 'やさしい', normal: 'ふつう', hard: 'むずかしい' }[difficulty],
+    { easy: 'Easy', normal: 'Normal', hard: 'Hard' }[difficulty]
+  );
 }

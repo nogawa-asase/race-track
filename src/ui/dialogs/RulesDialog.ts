@@ -1,3 +1,5 @@
+import { onLangChange, pick } from '../../app/i18n';
+
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /** 慣性点と9候補の図(PRD「6-2. ルール説明」の受け入れ条件)。3×3の点で、中央だけ「+」にする */
@@ -47,6 +49,12 @@ function renderCandidateDiagram(): SVGSVGElement {
  */
 export class RulesDialog {
   private readonly dialog: HTMLDialogElement;
+  private readonly title: HTMLElement;
+  private readonly p1: HTMLElement;
+  private readonly p2: HTMLElement;
+  private readonly p3: HTMLElement;
+  private readonly p4: HTMLElement;
+  private readonly closeButton: HTMLButtonElement;
 
   constructor(container: HTMLElement) {
     this.dialog = document.createElement('dialog');
@@ -55,32 +63,51 @@ export class RulesDialog {
     const body = document.createElement('div');
     body.className = 'rules-dialog-body';
 
-    const title = document.createElement('h2');
-    title.textContent = 'ゲームのルール';
+    this.title = document.createElement('h2');
+    this.p1 = document.createElement('p');
+    this.p2 = document.createElement('p');
+    this.p3 = document.createElement('p');
+    this.p4 = document.createElement('p');
 
-    const p1 = document.createElement('p');
-    p1.textContent = '車は急に止まることも、加速することもできません。';
+    this.closeButton = document.createElement('button');
+    this.closeButton.type = 'button';
+    this.closeButton.addEventListener('click', () => this.dialog.close());
 
-    const p2 = document.createElement('p');
-    p2.textContent =
-      'この世界の車は、1つ目の場所から、今の場所のスピードから、1マス分しか調整できません。';
-
-    const p3 = document.createElement('p');
-    p3.textContent =
-      '相手より先にゴールしよう。カーブではちゃんとブレーキをかけて!あとハンドルも切ってね!';
-
-    const p4 = document.createElement('p');
-    p4.textContent =
-      '同じマス目には、車は2台止まれません。だから・・・先行はいつも、先に進んで相手を邪魔できます。それにも関わらず同じターン数でゴールできたら、後攻の勝ちです!';
-
-    const closeButton = document.createElement('button');
-    closeButton.type = 'button';
-    closeButton.textContent = '閉じる';
-    closeButton.addEventListener('click', () => this.dialog.close());
-
-    body.append(title, p1, p2, renderCandidateDiagram(), p3, p4, closeButton);
+    body.append(
+      this.title,
+      this.p1,
+      this.p2,
+      renderCandidateDiagram(),
+      this.p3,
+      this.p4,
+      this.closeButton
+    );
     this.dialog.append(body);
     container.append(this.dialog);
+
+    this.relabel();
+    onLangChange(() => this.relabel());
+  }
+
+  private relabel(): void {
+    this.title.textContent = pick('ゲームのルール', 'How to Play');
+    this.p1.textContent = pick(
+      '車は急に止まることも、加速することもできません。',
+      "Cars can't suddenly stop or speed up."
+    );
+    this.p2.textContent = pick(
+      'この世界の車は、1つ目の場所から、今の場所のスピードから、1マス分しか調整できません。',
+      "Your car can only change its speed by one square per turn, based on how fast it's already going."
+    );
+    this.p3.textContent = pick(
+      '相手より先にゴールしよう。カーブではちゃんとブレーキをかけて!あとハンドルも切ってね!',
+      'Race to the finish before your opponent! Remember to brake for curves — and steer, too!'
+    );
+    this.p4.textContent = pick(
+      '同じマス目には、車は2台止まれません。だから・・・先行はいつも、先に進んで相手を邪魔できます。それにも関わらず同じターン数でゴールできたら、後攻の勝ちです!',
+      "Two cars can't occupy the same square. So the player who goes first can always move ahead and block the other. But if the second player still finishes on that same turn, the second player wins!"
+    );
+    this.closeButton.textContent = pick('閉じる', 'Close');
   }
 
   /** 開いて、閉じられるまで待つ */

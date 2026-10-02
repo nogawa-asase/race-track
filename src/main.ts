@@ -12,9 +12,11 @@ import './ui/styles/layout.css';
 import './ui/styles/screens.css';
 import './ui/styles/dialogs.css';
 import { GameController } from './app/GameController';
+import { getLang, onLangChange, pick } from './app/i18n';
 import type { GameSettings } from './domain/types';
 import { DomGameView } from './ui/DomGameView';
-import { renderLogo } from './ui/Logo';
+import { renderLanguageSwitch } from './ui/LanguageSwitch';
+import { renderLogo, renderLogoEn } from './ui/Logo';
 
 const app = document.querySelector<HTMLDivElement>('#app');
 if (!app) {
@@ -53,7 +55,23 @@ document.addEventListener(
   true
 );
 
-app.append(renderLogo());
+/*
+ * ロゴは言語が変わるたびに差し替える(日本語版「レーストラック」・
+ * 英語版「RACE TRACK」で、文字も枠の大きさも別物のため、文言だけの
+ * 差し替えでは済まない)。言語切り替えボタンは画面の同じ場所(右上)に
+ * 常に置き、設定画面・レース画面のどちらからでも押せるようにする
+ */
+let logoEl: HTMLElement = getLang() === 'ja' ? renderLogo() : renderLogoEn();
+app.append(logoEl, renderLanguageSwitch());
+
+onLangChange((lang) => {
+  const nextLogo = lang === 'ja' ? renderLogo() : renderLogoEn();
+  logoEl.replaceWith(nextLogo);
+  logoEl = nextLogo;
+  document.documentElement.lang = lang;
+  document.title = pick('レーストラック', 'Race Track');
+});
+document.documentElement.lang = getLang();
 
 /** 機能設計書「設定画面」のデフォルト値 */
 const DEFAULT_SETTINGS: GameSettings = {

@@ -1,9 +1,9 @@
 import type { GameView } from './GameView';
 import {
-  CONFIRM_BACK_TO_SETTINGS,
-  CONFIRM_RETIRE,
-  DEAD_END_WARNING,
-  ERROR_RETURN_TO_SETTINGS,
+  confirmBackToSettings,
+  confirmRetire,
+  deadEndWarning,
+  errorReturnToSettings,
   deadEndResultMessage,
   lotteryMessage,
   retireResultMessage,
@@ -134,7 +134,7 @@ export class GameController {
 
   /** 確認のうえ設定画面に戻る(スタート位置選び・レース画面から) */
   async backToSettings(): Promise<void> {
-    const ok = await this.view.confirm(CONFIRM_BACK_TO_SETTINGS);
+    const ok = await this.view.confirm(confirmBackToSettings());
     if (!ok || !this.settings) return;
     this.returnToSettings();
   }
@@ -164,7 +164,7 @@ export class GameController {
     if (!this.state || !this.settings || this.state.phase === 'finished') {
       return;
     }
-    const ok = await this.view.confirm(CONFIRM_RETIRE);
+    const ok = await this.view.confirm(confirmRetire());
     // confirm() で待っている間に、進行中だったCPUの手番などが決着させて
     // いることもあるため、待ったあとの this.state を改めて読み直す
     const settings = this.settings;
@@ -242,7 +242,7 @@ export class GameController {
         : c
     );
     this.view.renderBoard(state, this.course!, patched);
-    void this.view.showMessage(DEAD_END_WARNING);
+    void this.view.showMessage(deadEndWarning());
   }
 
   /** 方向パッドでの確定(レース中のみ) */
@@ -398,7 +398,7 @@ export class GameController {
       }
 
       if (willBeDeadEnd(this.state, this.course!, playerIndex)) {
-        await this.view.showMessage(DEAD_END_WARNING);
+        await this.view.showMessage(deadEndWarning());
         if (!this.isCurrent(token)) return;
       }
 
@@ -444,7 +444,7 @@ export class GameController {
   private async returnToSettingsAfterError(): Promise<void> {
     this.raceToken++;
     this.state = null;
-    await this.view.showMessage(ERROR_RETURN_TO_SETTINGS);
+    await this.view.showMessage(errorReturnToSettings());
     if (this.settings) {
       this.view.showSettings(this.settings);
     }

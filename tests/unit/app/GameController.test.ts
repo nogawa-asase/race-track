@@ -1,6 +1,6 @@
 import { afterEach, vi } from 'vitest';
 import { GameController } from '../../../src/app/GameController';
-import { DEAD_END_WARNING } from '../../../src/app/messages';
+import { deadEndWarning } from '../../../src/app/messages';
 import { hairpin } from '../../../src/courses/hairpin';
 import { buildCourse } from '../../../src/domain/course/buildCourse';
 import { chooseMove } from '../../../src/domain/cpu/chooseMove';
@@ -297,7 +297,7 @@ describe('GameController', () => {
       await settle();
 
       // Then: 予告が出て、Bの番になる
-      expect(view.messages).toContain(DEAD_END_WARNING);
+      expect(view.messages).toContain(deadEndWarning());
       expect(view.rendered.at(-1)?.state.turn).toBe(1);
       expect(view.results.length).toBe(0);
 
@@ -375,7 +375,7 @@ describe('GameController', () => {
 
       // Then: 移動せず(Aの番のまま)、メッセージが出て、決着もしない
       expect(view.rendered.at(-1)?.state.turn).toBe(0);
-      expect(view.messages).toContain(DEAD_END_WARNING);
+      expect(view.messages).toContain(deadEndWarning());
       expect(view.results.length).toBe(0);
 
       // その候補だけがバツ(status: 'deadEnd')として描き直され、他の候補は
@@ -414,7 +414,7 @@ describe('GameController', () => {
 
       // Then: 事前には止められず、移動したうえで事後にメッセージが出る
       expect(view.rendered.at(-1)?.state.turn).toBe(1);
-      expect(view.messages).toContain(DEAD_END_WARNING);
+      expect(view.messages).toContain(deadEndWarning());
     });
   });
 

@@ -46,3 +46,25 @@ input[type='checkbox'] {
 button:focus:not(:focus-visible) {
   outline: none;
 }
+
+/*
+ * 言語切り替えボタン(日本語⇔English)。画面の右上に固定し、設定画面・
+ * レース画面のどちらからでも押せるようにする(ダイアログを開いている間は
+ * ネイティブdialogのトップレイヤーの下に隠れるが、閉じればまた押せる)
+ */
+.lang-switch {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  min-height: 36px;
+  padding: 0 0.75rem;
+  border: 3px solid var(--color-ink);
+  border-radius: 10px;
+  background: #ffe27a;
+  color: var(--color-ink);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.85rem;
+  box-shadow: 3px 3px 0 var(--color-ink);
+}

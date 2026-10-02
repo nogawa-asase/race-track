@@ -1,7 +1,8 @@
+import { pick } from './i18n';
 import type { PenColor } from '../domain/types';
 
 function colorName(color: PenColor): string {
-  return color === 'red' ? '赤' : '青';
+  return color === 'red' ? pick('赤', 'Red') : pick('青', 'Blue');
 }
 
 /**
@@ -16,9 +17,10 @@ export function playerLabel(
   if (opponent === 'human') {
     return colorName(color);
   }
-  return playerKind === 'cpu'
-    ? `CPU(${colorName(color)})`
-    : `あなた(${colorName(color)})`;
+  if (playerKind === 'cpu') {
+    return pick(`CPU(${colorName(color)})`, `CPU (${colorName(color)})`);
+  }
+  return pick(`あなた(${colorName(color)})`, `You (${colorName(color)})`);
 }
 
 /** 手番のプレイヤーの表示(機能設計書「メッセージ」) */
@@ -30,12 +32,23 @@ export function turnMessage(
   if (playerKind === 'cpu' && opponent === 'cpu') {
     return thinkingMessage(color);
   }
-  return `${playerLabel(opponent, playerKind, color)}の番です`;
+  if (opponent === 'cpu' && playerKind === 'human') {
+    // 英語では「You (Red)'s turn」のような所有格の重なりを避ける
+    return pick(
+      `あなた(${colorName(color)})の番です`,
+      `Your turn (${colorName(color)})`
+    );
+  }
+  const label = playerLabel(opponent, playerKind, color);
+  return pick(`${label}の番です`, `${label}'s turn`);
 }
 
 /** CPUの手番の表示 */
 export function thinkingMessage(color: PenColor): string {
-  return `CPU(${colorName(color)})が考え中…`;
+  return pick(
+    `CPU(${colorName(color)})が考え中…`,
+    `CPU (${colorName(color)}) is thinking…`
+  );
 }
 
 /**
@@ -48,10 +61,14 @@ export function lotteryMessage(
   firstColor: PenColor
 ): string {
   if (opponent === 'human') {
-    return `${colorName(firstColor)}が先攻です`;
+    return pick(
+      `${colorName(firstColor)}が先攻です`,
+      `${colorName(firstColor)} goes first`
+    );
   }
-  const who = firstColorOwner === 'human' ? 'あなた' : 'CPU';
-  return `${who}が先攻です`;
+  return firstColorOwner === 'human'
+    ? pick('あなたが先攻です', 'You go first')
+    : pick('CPUが先攻です', 'CPU goes first');
 }
 
 /** 表示名を組み立てるのに必要な、プレイヤーの種類と色 */
@@ -61,7 +78,12 @@ export interface PlayerRef {
 }
 
 /** 次の手番で行き止まりになる点に移動したときの予告 */
-export const DEAD_END_WARNING = '次の手番では、どこにも進めません';
+export function deadEndWarning(): string {
+  return pick(
+    '次の手番では、どこにも進めません',
+    "You won't be able to move anywhere on your next turn"
+  );
+}
 
 /** 行き止まりで決着したときの表示 */
 export function deadEndResultMessage(
@@ -71,7 +93,10 @@ export function deadEndResultMessage(
 ): string {
   const loserLabel = playerLabel(opponent, loser.kind, loser.color);
   const winnerLabel = playerLabel(opponent, winner.kind, winner.color);
-  return `${loserLabel}は、どこにも進めません。${winnerLabel}の勝ちです`;
+  return pick(
+    `${loserLabel}は、どこにも進めません。${winnerLabel}の勝ちです`,
+    `${loserLabel} can't move anywhere. ${winnerLabel} wins!`
+  );
 }
 
 /** 先攻がゴールし、後攻の手番がまだ残っているときの表示 */
@@ -82,14 +107,27 @@ export function tieRulePendingMessage(
 ): string {
   const goaledLabel = playerLabel(opponent, goaled.kind, goaled.color);
   const otherLabel = playerLabel(opponent, otherPlayer.kind, otherPlayer.color);
-  return `${goaledLabel}がゴール! ${otherLabel}がこの手でゴールすれば、同着ルールで${otherLabel}の勝ちです`;
+  return pick(
+    `${goaledLabel}がゴール! ${otherLabel}がこの手でゴールすれば、同着ルールで${otherLabel}の勝ちです`,
+    `${goaledLabel} finished! If ${otherLabel} finishes on this move too, ${otherLabel} wins by the tie-break rule`
+  );
 }
 
 /** 設定に戻る前の確認 */
-export const CONFIRM_BACK_TO_SETTINGS = 'レースをやめて、設定に戻りますか?';
+export function confirmBackToSettings(): string {
+  return pick(
+    'レースをやめて、設定に戻りますか?',
+    'Quit the race and return to settings?'
+  );
+}
 
 /** リタイヤ前の確認 */
-export const CONFIRM_RETIRE = 'リタイヤしますか? 相手の勝ちになります';
+export function confirmRetire(): string {
+  return pick(
+    'リタイヤしますか? 相手の勝ちになります',
+    'Retire? Your opponent will win'
+  );
+}
 
 /** リタイヤで決着したときの表示 */
 export function retireResultMessage(
@@ -99,9 +137,16 @@ export function retireResultMessage(
 ): string {
   const loserLabel = playerLabel(opponent, loser.kind, loser.color);
   const winnerLabel = playerLabel(opponent, winner.kind, winner.color);
-  return `${loserLabel}がリタイヤしました。${winnerLabel}の勝ちです`;
+  return pick(
+    `${loserLabel}がリタイヤしました。${winnerLabel}の勝ちです`,
+    `${loserLabel} retired. ${winnerLabel} wins!`
+  );
 }
 
 /** 想定外のエラーで、レースを中断して設定に戻すときの表示 */
-export const ERROR_RETURN_TO_SETTINGS =
-  'エラーが起きました。設定画面に戻ります';
+export function errorReturnToSettings(): string {
+  return pick(
+    'エラーが起きました。設定画面に戻ります',
+    'An error occurred. Returning to the settings screen'
+  );
+}

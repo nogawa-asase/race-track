@@ -1,4 +1,5 @@
 import { turnMessage } from '../../app/messages';
+import { onLangChange, pick } from '../../app/i18n';
 import type { GameState } from '../../domain/types';
 import { isMobileLayout } from '../layout';
 
@@ -18,7 +19,12 @@ export class ControlPanel {
   private readonly container: HTMLElement;
   private readonly turnEl: HTMLElement;
   private readonly roundEl: HTMLElement;
+  private readonly backButton: HTMLButtonElement;
+  private readonly rulesButton: HTMLButtonElement;
   private readonly autoZoomButton: HTMLButtonElement;
+  private readonly retireButton: HTMLButtonElement;
+  private latestState: GameState | null = null;
+  private latestOpponent: 'cpu' | 'human' = 'cpu';
 
   constructor(container: HTMLElement, callbacks: ControlPanelCallbacks) {
     this.container = document.createElement('div');
@@ -31,40 +37,64 @@ export class ControlPanel {
 
     const buttons = document.createElement('div');
     buttons.className = 'panel-buttons';
-    const backButton = document.createElement('button');
-    backButton.type = 'button';
-    backButton.textContent = '設定に戻る';
-    backButton.addEventListener('click', callbacks.onBackToSettings);
-    const rulesButton = document.createElement('button');
-    rulesButton.type = 'button';
-    rulesButton.textContent = 'ルール説明';
-    rulesButton.addEventListener('click', callbacks.onShowRules);
+    this.backButton = document.createElement('button');
+    this.backButton.type = 'button';
+    this.backButton.addEventListener('click', callbacks.onBackToSettings);
+    this.rulesButton = document.createElement('button');
+    this.rulesButton.type = 'button';
+    this.rulesButton.addEventListener('click', callbacks.onShowRules);
     this.autoZoomButton = document.createElement('button');
     this.autoZoomButton.type = 'button';
-    this.autoZoomButton.textContent = 'オートズーム';
     this.autoZoomButton.addEventListener('click', callbacks.onAutoZoom);
-    const retireButton = document.createElement('button');
-    retireButton.type = 'button';
-    retireButton.className = 'retire-button';
-    retireButton.textContent = 'リタイヤ';
-    retireButton.addEventListener('click', callbacks.onRetire);
-    buttons.append(backButton, rulesButton, this.autoZoomButton, retireButton);
+    this.retireButton = document.createElement('button');
+    this.retireButton.type = 'button';
+    this.retireButton.className = 'retire-button';
+    this.retireButton.addEventListener('click', callbacks.onRetire);
+    buttons.append(
+      this.backButton,
+      this.rulesButton,
+      this.autoZoomButton,
+      this.retireButton
+    );
 
     this.container.append(this.turnEl, this.roundEl, buttons);
     container.append(this.container);
+
+    this.relabel();
+    onLangChange(() => this.relabel());
   }
 
   /** 手番・ターンの表示を更新する */
   render(state: GameState, opponent: 'cpu' | 'human'): void {
+    this.latestState = state;
+    this.latestOpponent = opponent;
+    this.updateTurnDisplay(state, opponent);
+    // オートズームはスマホ専用の機能のため、PCでは表示しない
+    this.autoZoomButton.hidden = !isMobileLayout();
+  }
+
+  private updateTurnDisplay(state: GameState, opponent: 'cpu' | 'human'): void {
     const player = state.players[state.turn];
     this.turnEl.textContent = turnMessage(opponent, player.kind, player.color);
     this.turnEl.className = `turn-indicator color-${player.color}`;
-    this.roundEl.textContent = `ターン: ${state.round}`;
+    this.roundEl.textContent = pick(
+      `ターン: ${state.round}`,
+      `Turn: ${state.round}`
+    );
     // スタート位置選び中はターンがまだ始まっていない(常に0)ため、意味の
     // ない表示になる。レース中だけ見せる
     this.roundEl.hidden = state.phase !== 'racing';
-    // オートズームはスマホ専用の機能のため、PCでは表示しない
-    this.autoZoomButton.hidden = !isMobileLayout();
+  }
+
+  /** 表示言語が変わるたびに、ボタンと(表示中なら)手番表示の文言を差し替える */
+  private relabel(): void {
+    this.backButton.textContent = pick('設定に戻る', 'Back to Settings');
+    this.rulesButton.textContent = pick('ルール説明', 'How to play');
+    this.autoZoomButton.textContent = pick('オートズーム', 'Auto-zoom');
+    this.retireButton.textContent = pick('リタイヤ', 'Retire');
+    if (this.latestState) {
+      this.updateTurnDisplay(this.latestState, this.latestOpponent);
+    }
   }
 
   destroy(): void {

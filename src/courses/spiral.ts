@@ -8,8 +8,10 @@ import type { CourseDefinition } from '../domain/course/types';
 export const spiral: CourseDefinition = {
   id: 'spiral',
   name: 'うずまき',
+  nameEn: 'Spiral',
   difficulty: 'hard',
   description: '細いコースが内側へ締まっていく',
+  descriptionEn: 'A narrow track that spirals tighter toward the center',
   boardSize: { x: 33, y: 33 },
   centerline: [
     { x: 3, y: 29 },

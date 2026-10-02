@@ -8,9 +8,13 @@ export interface CourseDefinition {
   readonly id: CourseId;
   /** 表示名: 'ヘアピン' など */
   readonly name: string;
+  /** 表示名の英語版: 'Hairpin' など */
+  readonly nameEn: string;
   readonly difficulty: Difficulty;
   /** 設定画面に出す特徴 */
   readonly description: string;
+  /** description の英語版 */
+  readonly descriptionEn: string;
   /** 盤の格子点の数。格子点の座標は 0〜boardSize-1 */
   readonly boardSize: Vec;
   /** 中心線の折れ線の頂点(スタート側から順に。2点以上、整数) */

@@ -451,3 +451,65 @@ test.describe('スタート位置選び(機能設計書「入力の操作」の�
     await expect(page.locator('.turn-indicator')).not.toHaveText(before ?? '');
   });
 });
+
+test.describe('言語切り替え(PRD「11. 言語切り替え」)', () => {
+  test('設定画面で切り替えると文言が変わり、選択は保たれる', async ({
+    page,
+  }) => {
+    // Given
+    await page.goto('./');
+    await page.waitForSelector('.settings-screen');
+    await page.selectOption('select[name="opponent"]', 'human');
+
+    // When: 右上の切り替えボタンを押す
+    await expect(page.locator('.lang-switch')).toHaveText('English');
+    await page.click('.lang-switch');
+
+    // Then: 文言が英語になり、ボタンは次に切り替える先(日本語)を示す
+    await expect(page.locator('.lang-switch')).toHaveText('日本語');
+    await expect(page.locator('.settings-screen button').first()).toHaveText(
+      'Start'
+    );
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+
+    // Then: 対戦相手の選択(人)は保たれている
+    await expect(page.locator('select[name="opponent"]')).toHaveValue('human');
+  });
+
+  test('レース中に切り替えても、進行はそのまま文言だけ変わる', async ({
+    page,
+  }) => {
+    // Given: CPUの自動の手でタイミングが揺れないよう、人同士にする
+    await startGame(page, 'human');
+    await dismissMessageIfAny(page);
+    await expect(page.locator('.race-screen')).toBeVisible();
+    // 手番の色(赤・青どちらの番か)は、言語を切り替えても変わらないはず
+    const colorClass = await page
+      .locator('.turn-indicator')
+      .evaluate((el) =>
+        Array.from(el.classList).find((c) => c.startsWith('color-'))
+      );
+
+    // When
+    await page.click('.lang-switch');
+
+    // Then: 手番(色)は変わらないまま、ボタン・手番表示の文言が英語になる
+    await expect(page.locator('.panel-buttons button').first()).toHaveText(
+      'Back to Settings'
+    );
+    await expect(page.locator('.turn-indicator')).toHaveClass(
+      new RegExp(colorClass ?? '')
+    );
+
+    // When: 日本語に戻す
+    await page.click('.lang-switch');
+
+    // Then
+    await expect(page.locator('.panel-buttons button').first()).toHaveText(
+      '設定に戻る'
+    );
+    await expect(page.locator('.turn-indicator')).toHaveClass(
+      new RegExp(colorClass ?? '')
+    );
+  });
+});

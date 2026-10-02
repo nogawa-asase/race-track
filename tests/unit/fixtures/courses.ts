@@ -7,8 +7,10 @@ import type { CourseDefinition } from '../../../src/domain/course/types';
 export const straightCourse: CourseDefinition = {
   id: 'hairpin',
   name: '直線(テスト用)',
+  nameEn: 'Straight (test)',
   difficulty: 'easy',
   description: 'テスト用の直線コース',
+  descriptionEn: 'A straight test course',
   boardSize: { x: 33, y: 33 },
   centerline: [
     { x: 2, y: 5 },
@@ -26,8 +28,10 @@ export const straightCourse: CourseDefinition = {
 export const lCourse: CourseDefinition = {
   id: 'crank',
   name: 'L字(テスト用)',
+  nameEn: 'L-shape (test)',
   difficulty: 'normal',
   description: 'テスト用のL字コース',
+  descriptionEn: 'An L-shaped test course',
   boardSize: { x: 33, y: 33 },
   centerline: [
     { x: 2, y: 5 },
